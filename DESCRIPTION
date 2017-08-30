@@ -1,0 +1,15 @@
+Package: dtts.utils
+Type: Package
+Title: Utilities for data.table time-series
+Version: 0.0.0
+Date: 2017-08-30
+Author: Leonardo Silvestri
+Maintainer: Leonardo Silvestri <lsilvestri@ztsdb.org>
+Description: Various usefuls function for handling data.table time-series such as alignment.
+License: GPL (>= 2)
+Depends: nanotime
+Imports: data.table, methods, bit64, Rcpp (>= 0.11.5), RcppCCTZ (>= 0.2.0)
+Suggests: RUnit, data.table
+LinkingTo: Rcpp
+BugReports: https://gitlab.com/lsilvest/dtts.utils/issues
+RoxygenNote: 6.0.1

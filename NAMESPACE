@@ -1,0 +1,7 @@
+useDynLib(dtts.utils)
+import("methods")
+import("Rcpp")
+import("bit64")
+import("nanotime")
+
+export("align_idx")
