@@ -3,5 +3,7 @@ import("methods")
 import("Rcpp")
 import("bit64")
 import("nanotime")
+import("data.table")
 
 export("align_idx")
+export("align_func")

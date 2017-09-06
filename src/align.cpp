@@ -3,6 +3,7 @@
 #include <chrono>
 #include <cstdint>
 #include <Rcpp.h>
+#include <R_ext/Rdynload.h>
 
 
 // for debug reasons...
@@ -47,23 +48,24 @@ template <class Rep, class Period, class = std::enable_if_t<
 }
   
   
-
-  template <typename T, typename U=T>
-  struct PseudoVector {
-    PseudoVector(const U* v_p, size_t vlen_p, size_t sz_p=0) : 
-      v(v_p), vlen(vlen_p), scalar(vlen == 1), first_elt(v[0]), sz(sz_p) { }
-    inline const U operator[](size_t i) const { return scalar ? first_elt : v[i]; }
-    
-    inline const T plus(T t, U u) const { return Global::plus<T,U,T>()(t, u); }
-    inline size_t size() const { return scalar ? sz : vlen; }
-
-  private:
-    const U* v;
-    const size_t vlen;
-    const bool scalar;
-    const U first_elt;
-    const size_t sz;
-  };
+// wraps without cost either a scalar or a C vector so it can be used
+// with the same interface in the various templated functions
+template <typename T, typename U=T>
+struct PseudoVector {
+  PseudoVector(const U* v_p, size_t vlen_p, size_t sz_p=0) : 
+    v(v_p), vlen(vlen_p), scalar(vlen == 1), first_elt(v[0]), sz(sz_p) { }
+  inline const U operator[](size_t i) const { return scalar ? first_elt : v[i]; }
+  
+  inline const T plus(T t, U u) const { return Global::plus<T,U,T>()(t, u); }
+  inline size_t size() const { return scalar ? sz : vlen; }
+  
+private:
+  const U* v;
+  const size_t vlen;
+  const bool scalar;
+  const U first_elt;
+  const size_t sz;
+};
 
 
 
@@ -137,51 +139,90 @@ void align_idx(const TM*& x,
 // }
 
 
-// template <typename T, typename F,
-//           typename DS, typename DE>
-// void align_func(const arr::Vector<Global::dtime>& x, 
-//                 const arr::Vector<Global::dtime>& y, 
-//                 const arr::Vector<T>& xdata, 
-//                 arr::Vector<T>& ydata, 
-//                 const DS& start, 
-//                 const DE& end) 
-// {
-//   size_t ix = 0, iy = 0;
+static Rcpp::IntegerVector makeIndex(size_t start, size_t end) {
+  Rcpp::IntegerVector res(end - start);
+  size_t off = 0;
+  for (size_t i=start; i<end; ++i) {
+    res[off++] = i; 
+  }
+  return res;
+}
 
-//   if (xdata.size() != x.size()) throw std::out_of_range("'xdata' must have same size as 'x'");   
 
-//   // for each point in y, we try to find a matching point or set of
-//   // points in x:
-//   for (iy=0; iy<y.size(); iy++) {
-//     auto ystart = start.plus(y[iy], start[iy]);
-//     auto yend   = end.plus(y[iy], end[iy]);
+template <typename TM, typename DS, typename DE>
+Rcpp::List align_func(const TM& x,
+                      size_t xlen,
+                      const TM& y,
+                      size_t ylen,
+                      SEXP xdata, 
+                      const DS& start, 
+                      const DE& end,
+                      const Rcpp::Function& func) 
+{
+  auto res = Rcpp::List::create();
+  auto cols = makeIndex(2, XLENGTH(xdata)+1);
+  typedef SEXP SUBSET_DT_FUN(SEXP,SEXP,SEXP); 
+  //SUBSET_DT_FUN *subsetDT = (SUBSET_DT_FUN *) R_ExternalPtrAddr(Rcpp::CharacterVector("CsubsetDT"));
+  SUBSET_DT_FUN *subsetDT = (SUBSET_DT_FUN *) R_GetCCallable("data.table", "CsubsetDT" );
+                     
+  size_t ix = 0, iy = 0;
+
+  // for each point in y, we try to find a matching point or set of
+  // points in x:
+  for (iy=0; iy<ylen; iy++) {
+    auto ystart = start.plus(y[iy], start[iy]);
+    auto yend   = end.plus(y[iy], end[iy]);
     
-//     // advance until we have a point in x that is in the interval
-//     // defined around yi:
-//     auto iter = std::lower_bound(x.begin() + ix, x.end(), ystart);
-//     ix = iter - x.begin();
+    // advance until we have a point in x that is in the interval
+    // defined around yi:
+    auto iter = std::lower_bound(x + ix, x+xlen, ystart);
+    ix = iter - x;
       
-//     if (ix >= x.size() || x[ix] >= yend) {
-//       ydata.push_back(F::f(xdata.end(), xdata.end())); // empty interval
-//       continue;
-//     }
-//     typename arr::Vector<T>::const_iterator istart(xdata, ix);
-//     auto first_ix = ix;
+    if (ix >= xlen || x[ix] >= yend) {
+      res.push_back(func(R_NaN)); // empty interval
+      continue;
+    }
+    auto first_ix = ix;
 
-//     // find the last point in the interval:
-//     iter = std::lower_bound(x.begin() + ix, x.end(), yend);
-//     ix = iter - x.begin();
-//     while (ix < x.size() && x[ix] < yend) ++ix;
-//     typename arr::Vector<T>::const_iterator iend(xdata, ix);
+    // find the last point in the interval:
+    iter = std::lower_bound(x + ix, x+xlen, yend);
+    ix = iter - x;
+    while (ix < xlen && x[ix] < yend) ++ix;
 
-//     ydata.push_back(F::f(istart, iend));
+    const SEXP rows = makeIndex(first_ix+1, ix+1); // subsetDT is 1-based indexing
+    res.push_back(func(subsetDT(xdata, rows, cols)));
 
-//     // reset ix to the first ix found, because the intervals
-//     // specified could overlap:
-//     ix = first_ix;
-//   }
-// }
+    // reset ix to the first ix found, because the intervals
+    // specified could overlap:
+    ix = first_ix;
+  }
+  return res;
+}
 
+
+RcppExport SEXP _align_func(SEXP x,     // nanotime vector
+                            SEXP y,     // nanotime vector
+                            SEXP xdata, // DT
+                            SEXP start, // duration (or period?)
+                            SEXP end,   // duration (or period?)
+                            SEXP func)  // function to apply (character)
+{
+  const Rcpp::NumericVector nvx(x);
+  const Rcpp::NumericVector nvy(y);
+  const Global::dtime* vx = reinterpret_cast<const Global::dtime*>(&nvx[0]);
+  const Global::dtime* vy = reinterpret_cast<const Global::dtime*>(&nvy[0]);
+  const Rcpp::NumericVector nvstart(start);
+  const Rcpp::NumericVector nvend(end);
+  const Global::duration* sstart = reinterpret_cast<const Global::duration*>(&nvstart[0]);
+  const Global::duration* send   = reinterpret_cast<const Global::duration*>(&nvend[0]);
+  
+  return align_func(vx, nvx.size(),
+                    vy, nvy.size(),
+                    xdata,
+                    PseudoVector<Global::dtime, Global::duration>(sstart, nvstart.size(), nvy.size()),
+                    PseudoVector<Global::dtime, Global::duration>(send,   nvend.size(),   nvy.size()),
+                    Rcpp::Function(func));
+}
 // template <typename T, typename F>
 // void op_zts(const arr::Vector<Global::dtime>& x, 
 //             const arr::Vector<Global::dtime>& y, 
@@ -244,16 +285,60 @@ RcppExport SEXP _align_closest(SEXP x,
 
 }
 
-RcppExport SEXP _align_func(SEXP x,
-                            SEXP y,
-                            SEXP xdata,
-                            SEXP ydata,
-                            SEXP start,
-                            SEXP end,
-                            SEXP func) {
-  
+	
+// #include <Rcpp.h>
+// using namespace Rcpp ;
 
-}
+// template <int RTYPE>
+// Vector<RTYPE> first_two_impl( Vector<RTYPE> xin){
+//     Vector<RTYPE> xout(2) ;
+//     for( int i=0; i<2; i++ ){
+//         xout[i] = xin[i] ;    
+//     }
+//     return xout ;
+// }
+
+// // [[Rcpp::export]]
+// SEXP first_two( SEXP xin ){
+//   RCPP_RETURN_VECTOR(first_two_impl, xin) ;
+// }
+
+// /*** R
+//     first_two( 1:3 )
+//     first_two( letters )
+// */
+// Just sourceCpp this file, this will also run the R code which calls the two functions. Actually, the template could be simpler, this would work too:
+
+// template <typename T>
+// T first_two_impl( T xin){
+//     T xout(2) ;
+//     for( int i=0; i<2; i++ ){
+//         xout[i] = xin[i] ;    
+//     }
+//     return xout ;
+// }
+// The template parameter T only needs:
+
+// A constructor taking an int
+// An operator[](int)
+// Alternatively, this might be a job for dplyr vector visitors.
+
+// #include <dplyr.h>
+// // [[Rcpp::depends(dplyr,BH)]]
+
+// using namespace dplyr ;
+// using namespace Rcpp ;
+
+// // [[Rcpp::export]]
+// SEXP first_two( SEXP data ){
+//     VectorVisitor* v = visitor(data) ;
+//     IntegerVector idx = seq( 0, 1 ) ;
+//     Shield<SEXP> out( v->subset(idx) ) ;
+//     delete v ;
+//     return out ;
+// }
 
 
-// the op is cool too, so do that... LLL
+// // the op is cool too, so do that... LLL
+
+
