@@ -1,5 +1,3 @@
-
-
 savedFormat <- NULL
 one_second  <- 1e9
 
