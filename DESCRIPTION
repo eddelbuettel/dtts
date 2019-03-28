@@ -1,7 +1,7 @@
 Package: dtts.utils
 Type: Package
 Title: Utilities for data.table time-series
-Version: 0.0.1
+Version: 0.0.2
 Date: 2017-08-30
 Author: Leonardo Silvestri
 Maintainer: Leonardo Silvestri <lsilvestri@ztsdb.org>

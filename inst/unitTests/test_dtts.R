@@ -104,13 +104,13 @@ test_align.func.variable_start_end <- function() {
     checkEquals(align(dt1, t2, end=1, func=square_col1), exp)    
 }
 test_align.func_missing <- function() {
-    ## test where some groups have no rows (NULL)
+    ## test where some groups have no rows (0 row data.table)
     cols <- 3
     rows <- 100
     t1 <- nanotime(1:rows * one_second)
     dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
     t2 <- nanotime(1:11 * one_second * 10)
-    square_col1 <- function(x) if (is.null(x)) data.table(NaN, NaN, NaN)
+    square_col1 <- function(x) if (nrow(x)==0) data.table(NaN, NaN, NaN)
                                else { x[1,1] <- x[1,1] ^ 2; x }
     exp <- rbind(dt1[1:10 * 10], data.table(index=dt1$index[11], V1=NaN, V2=NaN, V3=NaN))
     exp[,2] <- exp[,2] ^ 2
@@ -118,19 +118,17 @@ test_align.func_missing <- function() {
 }
 test_align.func_error_dim <- function() {
     ## test when 'func' returns an incorrect number of columns
-    library(nanotime);library(nanoival);library(dtts.utils);library(RUnit);library(data.table)
     one_second  <- 1e9
     cols <- 3
     rows <- 100
     t1 <- nanotime(1:rows * one_second)
     dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
     t2 <- nanotime(1:11 * one_second * 10)
-    square_col1 <- function(x) if (is.null(x)) 1 else { x[1,1] <- x[1,1] ^ 2; x }
+    square_col1 <- function(x) if (nrow(x)==0) 1 else { x[1,1] <- x[1,1] ^ 2; x }
     checkException(align(dt1, t2, end=1, func=square_col1))
 }
 test_align.func_error_incorrect_function <- function() {
-    ## test when 'func' returns an incorrect number of columns
-    library(nanotime);library(nanoival);library(dtts.utils);library(RUnit);library(data.table)
+    ## test when 'func' cannot be called
     one_second  <- 1e9
     cols <- 3
     rows <- 100
@@ -147,6 +145,6 @@ test_frequency <- function() {
     t1 <- nanotime(1:rows * one_second)
     dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
     res <- frequency(dt1, as.integer64(30*one_second))
-    exp <- data.table(index=seq(dt1$index[1], by=30*one_second, length.out=3), V1=30)
+    exp <- data.table(index=nanotime(seq(dt1$index[1], by=30*one_second, length.out=3)), V1=30)
     checkEquals(res, exp)
 }

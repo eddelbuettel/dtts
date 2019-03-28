@@ -141,7 +141,8 @@ Rcpp::List align_func(const TM& x,
     ix = iter - x;
       
     if (ix >= xlen || x[ix] >= yend) {
-      res.push_back(func(R_NilValue)); // empty interval
+      const SEXP rows = Rcpp::IntegerVector::create(0);
+      res.push_back(func(subsetDT(xdata, rows, cols))); // empty interval
       continue;
     }
     auto first_ix = ix;
