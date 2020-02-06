@@ -102,7 +102,9 @@ align <- function(x, y, start=as.integer64(0), end=as.integer64(0), func=NULL) {
                                         func)))
     }
     else {
-        x[.Call('_align_idx', x[[1]], y, as.integer64(start), as.integer64(end))]
+        res <- x[.Call('_align_idx', x[[1]], y, as.integer64(start), as.integer64(end))]
+        res[[1]] <- y
+        res
     }
 }
 
