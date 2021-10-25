@@ -1,3 +1,2 @@
-PKG_CPPFLAGS = -std=c++14
-PKG_LDFLAGS = 
-PKG_LIBS = -lstdc++ -ldl
+## We want C++11 
+CXX_STD = CXX11

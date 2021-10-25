@@ -38,7 +38,7 @@ align.idx <- function(x, y, start=as.integer64(0), end=as.integer64(0)) {
         stop ("'y' must have class 'nanotime'")
     }
     
-    .Call('_align_idx', x, y, as.integer64(start), as.integer64(end))
+    .Call('_dtts_align_idx', x, y, as.integer64(start), as.integer64(end))
 }
 
 
@@ -79,7 +79,7 @@ align.idx <- function(x, y, start=as.integer64(0), end=as.integer64(0)) {
 ##' x <- data.table(index=nanotime((1:10)*1e9), data=1:10)
 ##' align(x, y, as.integer64(-1e9), as.integer64(1e9), colMeans)
 ##' }
-align <- function(x, y, start=as.integer64(0), end=as.integer64(0), func=NULL) {
+align <- function(x, y, start=as.nanoduration(0), end=as.nanoduration(0), func=NULL) {
     ## validate parameter types LLL
     if (!is.data.table(x)) {
         stop("'x' must be a 'data.table'")
@@ -92,19 +92,19 @@ align <- function(x, y, start=as.integer64(0), end=as.integer64(0), func=NULL) {
         if (!is.function(func)) {
             stop ("'func' must be a function")
         }
-        data.table(index=y,
-                   do.call(rbind, .Call('_align_func',
-                                        x[[1]],        # the index of the data.table
-                                        y,             # nanotime vector to align on
-                                        x,             # data.table data
-                                        as.integer64(start), # would be nice to get a duration type
-                                        as.integer64(end),   # idem
-                                        func)))
+        ## data.table(index=y,
+        ##            do.call(rbind, .Call('_dtts_align',
+        ##                                 x[[1]],        # the index of the data.table
+        ##                                 y,             # nanotime vector to align on
+        ##                                 x,             # data.table data
+        ##                                 start,
+        ##                                 end,
+        ##                                 func)))
     }
     else {
-        res <- x[.Call('_align_idx', x[[1]], y, as.integer64(start), as.integer64(end))]
-        res[[1]] <- y
-        res
+        ## res <- x[.Call('_dtts_align_idx', x[[1]], y, as.integer64(start), as.integer64(end))]
+        ## res[[1]] <- y
+        ## res
     }
 }
 
@@ -149,21 +149,21 @@ setMethod("grid.align",
                    start=x[[1]][1],           # start of the grid
                    end=tail(x[[1]], 1))       # time zone when using 'period'
           {
-              ## if (typeof(by) == "duration") {
+              ## if (typeof(by) == "nanoduration") {
               if (inherits(by, "integer64")) {
-                  grid <- nanoival::seq(start+by, end, by=by) # why do I need to qualify seq here???
+                  grid <- seq(start+by, end, by=by) # why do I need to qualify seq here???
                   if (tail(grid,1) < end) {
                       c(grid, tail(grid,1) + by)
                   }
               }
-              ## else if (typeof(by) == "period") {
-              ##     if (is.null(tz)) stop("tz must be specified when 'by' is a period")
+              ## else if (typeof(by) == "nanoperiod") {
+              ##     if (is.null(tz)) stop("tz must be specified when 'by' is a nanoperiod")
               ##     grid <- seq(`+`(start,by,tz), end, by=by, tz=tz)
               ##     if (tail(grid,1) < end) {
               ##         c(--grid, `+`(tail(grid,1),by,tz))
               ##     }
               ## }
-              ## else stop("invalid type for 'by', must be 'duration' or 'period'")
+              ## else stop("invalid type for 'by', must be 'nanoduration' or 'nanoperiod'")
               else stop("invalid type for 'by', must be 'integer64'")
               
               align(x, grid, -ival, as.integer64(0), func=func)

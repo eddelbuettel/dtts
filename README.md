@@ -25,7 +25,7 @@ spaced every 10 seconds and applies the column means to the
 observations that are being aligned.
 
 ~~~ R
-library(dtts.utils); library(data.table)
+library(dtts); library(data.table)
 one_second  <- 1e9
 cols <- 3
 rows <- 100
@@ -39,7 +39,7 @@ align(dt1, t2, start=-10*one_second, func=function(x) colMeans(as.data.frame(x))
 
 The package is in the very early stages and is largely untested.
 
-See the [issue tickets](https://github.com/lsilvestri/dtts.utils/issues)
+See the [issue tickets](https://github.com/eddelbuettel/dtts/issues)
 for an up to date list of potentially desirable, possibly planned, or
 at least discussed items.
 
@@ -51,7 +51,7 @@ remotes::install_github("lsilvest/dtts.utils")
 
 ### Author
 
-Leonardo Silvestri
+Dirk Eddelbuettel, Leonardo Silvestri
 
 ### License
 
