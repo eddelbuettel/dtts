@@ -92,19 +92,19 @@ align <- function(x, y, start=as.nanoduration(0), end=as.nanoduration(0), func=N
         if (!is.function(func)) {
             stop ("'func' must be a function")
         }
-        ## data.table(index=y,
-        ##            do.call(rbind, .Call('_dtts_align',
-        ##                                 x[[1]],        # the index of the data.table
-        ##                                 y,             # nanotime vector to align on
-        ##                                 x,             # data.table data
-        ##                                 start,
-        ##                                 end,
-        ##                                 func)))
+        data.table(index=y,
+                   do.call(rbind, .Call('_dtts_align',
+                                        x[[1]],        # the index of the data.table
+                                        y,             # nanotime vector to align on
+                                        x,             # data.table data
+                                        as.nanoduration(start),
+                                        as.nanoduration(end),
+                                        func)))
     }
     else {
-        ## res <- x[.Call('_dtts_align_idx', x[[1]], y, as.integer64(start), as.integer64(end))]
-        ## res[[1]] <- y
-        ## res
+        res <- x[.Call('_dtts_align_idx', x[[1]], y, as.integer64(start), as.integer64(end))]
+        res[[1]] <- y
+        res
     }
 }
 

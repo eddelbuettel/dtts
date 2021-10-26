@@ -110,8 +110,10 @@ test_align.func_missing <- function() {
     t1 <- nanotime(1:rows * one_second)
     dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
     t2 <- nanotime(1:11 * one_second * 10)
-    square_col1 <- function(x) if (nrow(x)==0) data.table(NaN, NaN, NaN)
-                               else { x[1,1] <- x[1,1] ^ 2; x }
+    square_col1 <- function(x) {
+        if (nrow(x)==0) data.table(NaN, NaN, NaN)
+        else { x[1,1] <- x[1,1] ^ 2; x }
+    }
     exp <- rbind(dt1[1:10 * 10], data.table(index=dt1$index[11], V1=NaN, V2=NaN, V3=NaN))
     exp[,2] <- exp[,2] ^ 2
     checkEquals(align(dt1, t2, end=1, func=square_col1), exp)    
