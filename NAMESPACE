@@ -6,6 +6,6 @@ import("nanotime")
 import("data.table")
 
 export("align.idx")
-export("align")
+exportMethods("align")
 exportMethods("grid.align")
 exportMethods("frequency")

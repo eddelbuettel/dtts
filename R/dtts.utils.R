@@ -1,3 +1,5 @@
+setGeneric("align.idx", function(x, y, start, end, ...) standardGeneric("align.idx"))
+
 ##' Get the index of the alignment of one vector onto another
 ##'
 ##' \code{align.idx} returns the index of the alignment of \code{x} on \code{y}
@@ -11,12 +13,12 @@
 ##' @param x the \code{nanotime} vector to align from
 ##' @param y the \code{nanotime} vector to align to
 ##' @param start scalar or vector of same length as \code{y} of type
-##'     \code{integer64}; \code{start} is added to each element in
+##'     \code{nanoduration}; \code{start} is added to each element in
 ##'     \code{y} and it then defines the starting point of the
 ##'     interval under consideration for the alignement on that
 ##'     element of \code{y}
 ##' @param end scalar or vector of same length as \code{y} of type
-##'     \code{integer64}; \code{start} is added to each element in
+##'     \code{nanoduration}; \code{start} is added to each element in
 ##'     \code{y} and it then defines the ending point of the interval
 ##'     under consideration for the alignement on that element of
 ##'     \code{y}
@@ -29,18 +31,26 @@
 ##' align.idx(nanotime(c(10:14, 17:19)), nanotime(11:20), as.integer64(-1), as.integer64(0))
 ##' ## [1]  2  3  4  5  5 NA  6  7  8  8
 ##' }
-align.idx <- function(x, y, start=as.integer64(0), end=as.integer64(0)) {
-    ## validate parameter types LLL
-    if (!inherits(x, "nanotime")) {
-        stop("'x' must have class 'nanotime'")
-    }
-    if (!inherits(y, "nanotime")) {
-        stop ("'y' must have class 'nanotime'")
-    }
-    
-    .Call('_dtts_align_idx', x, y, as.integer64(start), as.integer64(end))
-}
+setMethod("align.idx",
+          signature("data.table", "nanotime", "nanoduration", "nanoduration"),
+          function(x,                         # time-series
+                   y,                         # nanotime vector
+                   start=as.nanoduration(0),
+                   end=as.nanoduration(0)) {
+              ## validate parameter types LLL
+              if (!inherits(x, "nanotime")) {
+                  stop("'x' must have class 'nanotime'")
+              }
+              if (!inherits(y, "nanotime")) {
+                  stop ("'y' must have class 'nanotime'")
+              }
+              
+              .Call('_dtts_align_idx', x, y, start, end)
+          })
 
+
+
+setGeneric("align", function(x, y, start, end, ...) standardGeneric("align"))
 
 ##' Align a \code{data.table} onto a \code{nanotime} vector
 ##'
@@ -79,34 +89,49 @@ align.idx <- function(x, y, start=as.integer64(0), end=as.integer64(0)) {
 ##' x <- data.table(index=nanotime((1:10)*1e9), data=1:10)
 ##' align(x, y, as.integer64(-1e9), as.integer64(1e9), colMeans)
 ##' }
-align <- function(x, y, start=as.nanoduration(0), end=as.nanoduration(0), func=NULL) {
-    ## validate parameter types LLL
-    if (!is.data.table(x)) {
-        stop("'x' must be a 'data.table'")
-    }
-    if (!inherits(y, "nanotime")) {
-        stop ("'y' must have class 'nanotime'")
-    }
-    
-    if (!is.null(func)) {
-        if (!is.function(func)) {
-            stop ("'func' must be a function")
-        }
-        data.table(index=y,
-                   do.call(rbind, .Call('_dtts_align',
-                                        x[[1]],        # the index of the data.table
-                                        y,             # nanotime vector to align on
-                                        x,             # data.table data
-                                        as.nanoduration(start),
-                                        as.nanoduration(end),
-                                        func)))
-    }
-    else {
-        res <- x[.Call('_dtts_align_idx', x[[1]], y, as.integer64(start), as.integer64(end))]
-        res[[1]] <- y
-        res
-    }
-}
+##'
+##' 
+setMethod("align",
+          signature("data.table", "nanotime", "nanoduration", "nanoduration"),
+          function(x,                         # time-series
+                   y,                         # nanotime vector
+                   start=as.nanoduration(0),
+                   end=as.nanoduration(0), 
+                   func=NULL) {
+              
+              if (!is.null(func)) {
+                  if (!is.function(func)) {
+                      stop ("'func' must be a function")
+                  }
+                  data.table(index=y,
+                             do.call(rbind, .Call('_dtts_duration_align',
+                                                  x[[1]],        # the index of the data.table
+                                                  y,             # nanotime vector to align on
+                                                  x,             # data.table data
+                                                  as.nanoduration(start),
+                                                  as.nanoduration(end),
+                                                  func)))
+              }
+              else {
+                  res <- x[.Call('_dtts_align_idx', x[[1]], y, as.integer64(start), as.integer64(end))]
+                  res[[1]] <- y
+                  res
+              }
+          })
+
+
+setMethod("align",
+          signature("data.table", "nanotime", "nanoperiod", "nanoperiod"),
+          function(x,                           # time-series
+                   y,                           # nanotime vector
+                   start=as.nanoperiod(0),
+                   end=as.nanoperiod(0),
+                   tz,
+                   func=NULL) {
+              print("the nanoperiod one!!")
+              
+          })
+
 
 
 setGeneric("grid.align", function(x, ...) standardGeneric("grid.align"))
