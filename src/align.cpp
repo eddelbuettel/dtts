@@ -34,47 +34,6 @@ std::ostream &operator<<(std::ostream &stream,
 }
 
 
-// namespace Global {
-//   using dtime = std::chrono::system_clock::time_point;
-//   using duration = dtime::duration;
-
-//   template<typename T, typename U, typename R>
-//   struct plus {
-//     inline R operator()(const T& t, const U& u) const {
-//       return t + u;
-//     }
-//   };
-  
-// }
-
-// template <class Rep, class Period, class = std::enable_if_t<
-//           std::chrono::duration<Rep, Period>::min() < std::chrono::duration<Rep, Period>::zero()>>
-//           constexpr std::chrono::duration<Rep, Period> abs(std::chrono::duration<Rep, Period> d)
-// {
-//   return d >= d.zero() ? d : -d;
-// }
-  
-  
-// // wraps without cost either a scalar or a C vector so it can be used
-// // with the same interface in the various templated functions
-// template <typename T, typename U=T>
-// struct PseudoVector {
-//   PseudoVector(const U* v_p, size_t vlen_p, size_t sz_p=0) : 
-//     v(v_p), vlen(vlen_p), scalar(vlen == 1), first_elt(v[0]), sz(sz_p) { }
-//   inline const U operator[](size_t i) const { return scalar ? first_elt : v[i]; }
-  
-//   inline const T plus(T t, U u) const { return nanotime::plus<T,U,T>()(t, u); }
-//   inline size_t size() const { return scalar ? sz : vlen; }
-  
-// private:
-//   const U* v;
-//   const size_t vlen;
-//   const bool scalar;
-//   const U first_elt;
-//   const size_t sz;
-// };
-
-
 nanotime::duration abs_duration(nanotime::duration d)
 {
   if (d >= d.zero())
@@ -83,14 +42,14 @@ nanotime::duration abs_duration(nanotime::duration d)
 }
 
 
-void align_idx_helper(const nanotime::dtime* x,
-                      size_t xlen,
-                      const nanotime::dtime* y,
-                      size_t ylen,
-                      const ConstPseudoVectorDuration& start,
-                      const ConstPseudoVectorDuration& end,
-                      Rcpp::NumericVector& res) 
+static Rcpp::NumericVector align_idx_helper_duration(const nanotime::dtime* x,
+                               size_t xlen,
+                               const nanotime::dtime* y,
+                               size_t ylen,
+                               const ConstPseudoVectorDuration& start,
+                               const ConstPseudoVectorDuration& end) 
 {
+  Rcpp::NumericVector res(ylen);
   size_t ix = 0, iy = 0;
 
   // for each point in y, we try to find a matching point or set of
@@ -103,16 +62,55 @@ void align_idx_helper(const nanotime::dtime* x,
     // defined around yi:
     while (ix <= xlen && x[ix] < ystart) ++ix;
     if (ix >= xlen || x[ix] > yend) {
-      res.push_back(NA_REAL);
+      res[iy] = NA_REAL;
       continue;
     }
 
     // find the closest point in the interval:
     while (ix+1 < xlen && x[ix+1] <= yend && abs_duration(x[ix] - y[iy]) > abs_duration(x[ix+1] - y[iy])) ++ix;
-    res.push_back(ix + 1);     // +1 because of R numbering start convention
+    res[iy] = ix + 1;     // +1 because of R numbering start convention
   }
+
+  return res;
 }
-  
+
+
+
+static Rcpp::NumericVector align_idx_helper_period(const nanotime::dtime* x,
+                             size_t xlen,
+                             const nanotime::dtime* y,
+                             size_t ylen,
+                             const ConstPseudoVectorPrd& start,
+                             const ConstPseudoVectorPrd& end,
+                             const std::string tz) 
+{
+  Rcpp::NumericVector res(ylen);
+  size_t ix = 0, iy = 0;
+
+  // for each point in y, we try to find a matching point or set of
+  // points in x:
+  for (iy=0; iy<ylen; iy++) {
+    nanotime::period prd_start; memcpy(&prd_start, reinterpret_cast<const char*>(&start[iy]), sizeof(nanotime::period));
+    nanotime::period prd_end;   memcpy(&prd_end,   reinterpret_cast<const char*>(&end[iy]),   sizeof(nanotime::period));
+    auto ystart = nanotime::plus(y[iy], prd_start, tz);
+    auto yend   = nanotime::plus(y[iy], prd_end,   tz);
+      
+    // advance until we have a point in x that is in the interval
+    // defined around yi:
+    while (ix <= xlen && x[ix] < ystart) ++ix;
+    if (ix >= xlen || x[ix] > yend) {
+      res[iy] = NA_REAL;
+      continue;
+    }
+
+    // find the closest point in the interval:
+    while (ix+1 < xlen && x[ix+1] <= yend && abs_duration(x[ix] - y[iy]) > abs_duration(x[ix+1] - y[iy])) ++ix;
+    res[iy] = ix + 1;     // +1 because of R numbering start convention
+  }
+
+  return res;
+}
+
 
 static Rcpp::IntegerVector makeIndex(size_t start, size_t end) {
   Rcpp::IntegerVector res(end - start);
@@ -173,7 +171,6 @@ Rcpp::List align_func_duration(const nanotime::dtime* x,
   return res;
 }
 
-nanotime::period::period() : months(0), days(0), dur(std::chrono::seconds(0)) { }
 
 Rcpp::List align_func_period(const nanotime::dtime* x,
                              size_t xlen,
@@ -229,7 +226,7 @@ Rcpp::List align_func_period(const nanotime::dtime* x,
 
 
 // [[Rcpp::export]]
-Rcpp::List duration_align(const Rcpp::NumericVector& x, // nanotime vector
+Rcpp::List align_duration(const Rcpp::NumericVector& x,         // nanotime vector
                           const Rcpp::NumericVector& y,         // nanotime vector
                           const Rcpp::List xdata,               // DT
                           const Rcpp::NumericVector& start,     // duration
@@ -255,13 +252,13 @@ Rcpp::List duration_align(const Rcpp::NumericVector& x, // nanotime vector
 
 
 // [[Rcpp::export]]
-Rcpp::List period_align(const Rcpp::NumericVector& x, // nanotime vector
+Rcpp::List align_period(const Rcpp::NumericVector& x,         // nanotime vector
                         const Rcpp::NumericVector& y,         // nanotime vector
                         const Rcpp::List xdata,               // DT
                         const Rcpp::ComplexVector& start,     // period
                         const Rcpp::ComplexVector& end,       // period
                         const Rcpp::Function func,            // function to apply (character)
-                        const std::string tz)
+                        const std::string tz)                 // timezone
 {
   try {
     return align_func_period(reinterpret_cast<const nanotime::dtime*>(&x[0]),
@@ -276,30 +273,49 @@ Rcpp::List period_align(const Rcpp::NumericVector& x, // nanotime vector
   } catch(std::exception &ex) {	
     forward_exception_to_r(ex);
   } catch(...) { 
-    ::Rf_error("c++ exception (unknown reason)"); 
+    ::Rf_error("c++ exception (unknown reason)");
   }
   return R_NilValue;         // not reached
 }
 
 
 // [[Rcpp::export]]
-Rcpp::NumericVector align_idx(Rcpp::NumericVector x,     // nanotime vector
-                              Rcpp::NumericVector y,     // nanotime vector
-                              Rcpp::NumericVector start, // duration (or period?)
-                              Rcpp::NumericVector end)   // duration (or period?)
+Rcpp::NumericVector align_idx_duration(Rcpp::NumericVector x,     // nanotime vector
+                                       Rcpp::NumericVector y,     // nanotime vector
+                                       Rcpp::NumericVector start, // duration
+                                       Rcpp::NumericVector end)   // duration
 {
   try {
-    Rcpp::NumericVector res;
+    return align_idx_helper_duration(reinterpret_cast<const nanotime::dtime*>(&x[0]),
+                                     x.size(),
+                                     reinterpret_cast<const nanotime::dtime*>(&y[0]),
+                                     y.size(),
+                                     ConstPseudoVectorDuration(start),
+                                     ConstPseudoVectorDuration(end));
+  } catch(std::exception &ex) {	
+    forward_exception_to_r(ex);
+  } catch(...) { 
+    ::Rf_error("c++ exception (unknown reason)"); 
+  }
+  return R_NilValue;             // not reached
+}
 
-    align_idx_helper(reinterpret_cast<const nanotime::dtime*>(&x[0]),
-                     x.size(),
-                     reinterpret_cast<const nanotime::dtime*>(&y[0]),
-                     y.size(),
-                     ConstPseudoVectorDuration(start),
-                     ConstPseudoVectorDuration(end),
-                     res);
 
-    return res;
+// [[Rcpp::export]]
+Rcpp::NumericVector align_idx_period(Rcpp::NumericVector x,     // nanotime vector
+                                     Rcpp::NumericVector y,     // nanotime vector
+                                     Rcpp::ComplexVector start, // period
+                                     Rcpp::ComplexVector end,   // period
+                                     const std::string tz)      // timezone
+{
+  try {
+    return align_idx_helper_period(reinterpret_cast<const nanotime::dtime*>(&x[0]),
+                                   x.size(),
+                                   reinterpret_cast<const nanotime::dtime*>(&y[0]),
+                                   y.size(),
+                                   ConstPseudoVectorPrd(start),
+                                   ConstPseudoVectorPrd(end),
+                                   tz);
   } catch(std::exception &ex) {	
     forward_exception_to_r(ex);
   } catch(...) { 

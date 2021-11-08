@@ -45,7 +45,22 @@ setMethod("align.idx",
                   stop ("'y' must have class 'nanotime'")
               }
               
-              .Call('_dtts_align_idx', x, y, start, end)
+              .Call('_dtts_align_idx_duration', x, y, start, end)
+          })
+
+
+setMethod("align.idx",
+          signature("data.table", "nanotime", "nanoperiod", "nanoperiod"),
+          function(x,                         # time-series
+                   y,                         # nanotime vector
+                   start=as.nanoperiod(0),
+                   end=as.nanoperiod(0),
+                   tz) {
+               if (!inherits(y, "nanotime")) {
+                  stop ("'tz' must be a 'character'")
+              }
+             
+              .Call('_dtts_align_idx_period', x, y, start, end, tz)
           })
 
 
@@ -104,16 +119,16 @@ setMethod("align",
                       stop ("'func' must be a function")
                   }
                   data.table(index=y,
-                             do.call(rbind, .Call('_dtts_duration_align',
+                             do.call(rbind, .Call('_dtts_align_duration',
                                                   x[[1]],        # the index of the data.table
                                                   y,             # nanotime vector to align on
                                                   x,             # data.table data
-                                                  as.nanoduration(start),
-                                                  as.nanoduration(end),
+                                                  start,
+                                                  end,
                                                   func)))
               }
               else {
-                  res <- x[.Call('_dtts_align_idx', x[[1]], y, as.integer64(start), as.integer64(end))]
+                  res <- x[.Call('_dtts_align_idx_duration', x[[1]], y, start, end)]
                   res[[1]] <- y
                   res
               }
@@ -128,8 +143,26 @@ setMethod("align",
                    end=as.nanoperiod(0),
                    tz,
                    func=NULL) {
-              print("the nanoperiod one!!")
               
+              if (!is.null(func)) {
+                  if (!is.function(func)) {
+                      stop ("'func' must be a function")
+                  }
+                  data.table(index=y,
+                             do.call(rbind, .Call('_dtts_align_period',
+                                                  x[[1]],        # the index of the data.table
+                                                  y,             # nanotime vector to align on
+                                                  x,             # data.table data
+                                                  start,
+                                                  end,
+                                                  func,
+                                                  tz)))
+              }
+              else {
+                  res <- x[.Call('_dtts_align_idx_period', x[[1]], y, start, end, tz)]
+                  res[[1]] <- y
+                  res
+              }
           })
 
 
