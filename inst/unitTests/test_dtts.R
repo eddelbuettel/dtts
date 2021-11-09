@@ -62,6 +62,41 @@ test_align_duration.after <- function() {
     t2 <- nanotime(1:10 * one_second_duration * 10)
     checkEquals(align(dt1, t2, start=as.nanoduration(0), end=one_second_duration), dt1[seq(5, 50, 5)])
 }
+test_align_period.before <- function() {
+    ## do the alignment with an interval before of 1 nanosecond
+    cols <- 3
+    rows <- 100
+    t1 <- nanotime(1:100 * one_second_duration * 2 + one_second_duration)
+    dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
+    t2 <- nanotime(1:10 * one_second_duration * 10)
+    checkEquals(align(dt1, t2, start=-one_second_period, tz="America/New_York"), dt1[seq(4, 49, 5)])
+}
+test_align_period.after <- function() {
+    ## do the alignment with an interval after of 1 nanosecond
+    cols <- 3
+    rows <- 100
+    t1 <- nanotime(1:100 * one_second_duration * 2 + one_second_duration)
+    dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
+    t2 <- nanotime(1:10 * one_second_duration * 10)
+    checkEquals(align(dt1, t2, end=one_second_period, tz="America/New_York"), dt1[seq(5, 50, 5)])
+}
+## for period alignment, check it more carefully on a timezone boundary:
+test_align_period.before <- function() {
+    cols <- 3
+    t1 <- seq(from=as.nanotime("2021-11-06T00:00:00 America/New_York"),
+              to=as.nanotime("2021-11-09T00:00:00 America/New_York"),
+              by=as.nanoduration("01:00:00"))
+    rows <- length(t1)
+    dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
+    t2 <- seq(from=as.nanotime("2021-11-06T00:00:00 America/New_York"),
+              to=as.nanotime("2021-11-09T00:00:00 America/New_York"),
+              by=as.nanoperiod("1d"), tz="America/New_York")
+    ## notice below the transition over the day where we go to winter
+    ## time that has 25 hours, hence the index that goes from 25 to
+    ## 50:
+    checkEquals(align(dt1, t2, start=-as.nanoperiod("1d"), tz="America/New_York"), dt1[c(1, 25, 50, 75)])
+}
+
 
 ## align func
 ## ----------
@@ -143,23 +178,23 @@ test_align.func_error_incorrect_function <- function() {
 }
 
 
-test_align_period.before <- function() {
-    ## do the alignment with an interval before of 1 nanosecond
+## for period alignment, check it more carefully on a timezone boundary:
+test_align_func_period_before <- function() {
+    ## what we are specifically looking for here is that the alignment
+    ## will take the calendar day over the timezone boundary, so using
+    ## `nrow` as `func` will yield the transition day to winter time
+    ## as having 25 hours"
     cols <- 3
-    rows <- 100
-    t1 <- nanotime(1:100 * one_second_duration * 2 + one_second_duration)
+    t1 <- seq(from=as.nanotime("2021-11-06T00:00:00 America/New_York"),
+              to=as.nanotime("2021-11-10T00:00:00 America/New_York"),
+              by=as.nanoduration("01:00:00"))
+    rows <- length(t1)
     dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
-    t2 <- nanotime(1:10 * one_second_duration * 10)
-    checkEquals(align(dt1, t2, start=-one_second_period, end=as.nanoperiod(0), "America/New_York", mean), dt1[seq(4, 49, 5)])
-}
-test_align_period.after <- function() {
-    ## do the alignment with an interval after of 1 nanosecond
-    cols <- 3
-    rows <- 100
-    t1 <- nanotime(1:100 * one_second_duration * 2 + one_second_duration)
-    dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
-    t2 <- nanotime(1:10 * one_second_duration * 10)
-    checkEquals(align(dt1, t2, end=one_second_period), dt1[seq(5, 50, 5)])
+    t2 <- seq(from=as.nanotime("2021-11-07T00:00:00 America/New_York"),
+              to=as.nanotime("2021-11-09T00:00:00 America/New_York"),
+              by=as.nanoperiod("1d"), tz="America/New_York")
+    expected <- data.table(index=t2, V1=c(24, 25, 24))
+    checkEquals(align(dt1, t2, start=-as.nanoperiod("1d"), tz="America/New_York", func=nrow), expected)
 }
 
 

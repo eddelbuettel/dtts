@@ -67,6 +67,42 @@ setMethod("align.idx",
 
 setGeneric("align", function(x, y, start, end, ...) standardGeneric("align"))
 
+
+align_duration <- function(x,                         # time-series
+                           y,                         # nanotime vector
+                           start=as.nanoduration(0),
+                           end=as.nanoduration(0), 
+                           func=NULL)
+{
+    if (missing(start)) {
+        start <- as.nanoduration(0)
+    }
+    if (missing(end)) {
+        end <- as.nanoduration(0)
+    }
+    
+    if (!is.null(func)) {
+        if (!is.function(func)) {
+            stop ("'func' must be a function")
+        }
+        data.table(index=y,
+                   do.call(rbind, .Call('_dtts_align_duration',
+                                        x[[1]],        # the index of the data.table
+                                        y,             # nanotime vector to align on
+                                        x,             # data.table data
+                                        start,
+                                        end,
+                                        func)))
+    }
+    else {
+        res <- x[.Call('_dtts_align_idx_duration', x[[1]], y, start, end)]
+        res[[1]] <- y
+        res
+    }
+}
+
+align_duration_both_missing <- function(x, y) align_duration(x, y)
+
 ##' Align a \code{data.table} onto a \code{nanotime} vector
 ##'
 ##' \code{align} returns the subset of \code{data.table} \code{x} that
@@ -105,65 +141,54 @@ setGeneric("align", function(x, y, start, end, ...) standardGeneric("align"))
 ##' align(x, y, as.integer64(-1e9), as.integer64(1e9), colMeans)
 ##' }
 ##'
-##' 
-setMethod("align",
-          signature("data.table", "nanotime", "nanoduration", "nanoduration"),
-          function(x,                         # time-series
-                   y,                         # nanotime vector
-                   start=as.nanoduration(0),
-                   end=as.nanoduration(0), 
-                   func=NULL) {
-              
-              if (!is.null(func)) {
-                  if (!is.function(func)) {
-                      stop ("'func' must be a function")
-                  }
-                  data.table(index=y,
-                             do.call(rbind, .Call('_dtts_align_duration',
-                                                  x[[1]],        # the index of the data.table
-                                                  y,             # nanotime vector to align on
-                                                  x,             # data.table data
-                                                  start,
-                                                  end,
-                                                  func)))
-              }
-              else {
-                  res <- x[.Call('_dtts_align_idx_duration', x[[1]], y, start, end)]
-                  res[[1]] <- y
-                  res
-              }
-          })
+##'
+setMethod("align", signature("data.table", "nanotime", "nanoduration", "nanoduration"), align_duration)
+setMethod("align", signature("data.table", "nanotime", "missing", "missing"), align_duration)
+setMethod("align", signature("data.table", "nanotime", "nanoduration", "missing"), align_duration)
+setMethod("align", signature("data.table", "nanotime", "missing", "nanoduration"), align_duration)
 
 
-setMethod("align",
-          signature("data.table", "nanotime", "nanoperiod", "nanoperiod"),
-          function(x,                           # time-series
-                   y,                           # nanotime vector
-                   start=as.nanoperiod(0),
-                   end=as.nanoperiod(0),
-                   tz,
-                   func=NULL) {
-              
-              if (!is.null(func)) {
-                  if (!is.function(func)) {
-                      stop ("'func' must be a function")
-                  }
-                  data.table(index=y,
-                             do.call(rbind, .Call('_dtts_align_period',
-                                                  x[[1]],        # the index of the data.table
-                                                  y,             # nanotime vector to align on
-                                                  x,             # data.table data
-                                                  start,
-                                                  end,
-                                                  func,
-                                                  tz)))
-              }
-              else {
-                  res <- x[.Call('_dtts_align_idx_period', x[[1]], y, start, end, tz)]
-                  res[[1]] <- y
-                  res
-              }
-          })
+
+align_period <- function(x,                           # time-series
+                         y,                           # nanotime vector
+                         start=as.nanoperiod(0),
+                         end=as.nanoperiod(0),
+                         tz,
+                         func=NULL)
+{
+    
+    if (missing(start)) {
+        start <- as.nanoperiod(0)
+    }
+    if (missing(end)) {
+        end <- as.nanoperiod(0)
+    }
+
+    if (!is.null(func)) {
+        if (!is.function(func)) {
+            stop ("'func' must be a function")
+        }
+        data.table(index=y,
+                   do.call(rbind, .Call('_dtts_align_period',
+                                        x[[1]],        # the index of the data.table
+                                        y,             # nanotime vector to align on
+                                        x,             # data.table data
+                                        start,
+                                        end,
+                                        func,
+                                        tz)))
+    }
+    else {
+        res <- x[.Call('_dtts_align_idx_period', x[[1]], y, start, end, tz)]
+        res[[1]] <- y
+        res
+    }
+}
+
+
+setMethod("align", signature("data.table", "nanotime", "nanoperiod", "nanoperiod"), align_period)
+setMethod("align", signature("data.table", "nanotime", "nanoperiod", "missing"), align_period)
+setMethod("align", signature("data.table", "nanotime", "missing", "nanoperiod"), align_period)
 
 
 
