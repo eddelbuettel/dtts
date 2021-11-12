@@ -1,5 +1,20 @@
 setGeneric("align.idx", function(x, y, start, end, ...) standardGeneric("align.idx"))
 
+align_idx_duration <- function(x,                         # time-series
+                               y,                         # nanotime vector
+                               start=as.nanoduration(0),
+                               end=as.nanoduration(0))
+{
+    if (missing(start)) {
+        start <- as.nanoduration(0)
+    }
+    if (missing(end)) {
+        end <- as.nanoduration(0)
+    }
+    
+    .Call('_dtts_align_idx_duration', sort(x), sort(y), start, end)
+}
+
 ##' Get the index of the alignment of one vector onto another
 ##'
 ##' \code{align.idx} returns the index of the alignment of \code{x} on \code{y}
@@ -28,40 +43,37 @@ setGeneric("align.idx", function(x, y, start, end, ...) standardGeneric("align.i
 ##'
 ##' @examples
 ##' \dontrun{
-##' align.idx(nanotime(c(10:14, 17:19)), nanotime(11:20), as.integer64(-1), as.integer64(0))
+##' align.idx(nanotime(c(10:14, 17:19)), nanotime(11:20), as.nanoduration(-1), as.nanoduration(0))
 ##' ## [1]  2  3  4  5  5 NA  6  7  8  8
 ##' }
-setMethod("align.idx",
-          signature("data.table", "nanotime", "nanoduration", "nanoduration"),
-          function(x,                         # time-series
-                   y,                         # nanotime vector
-                   start=as.nanoduration(0),
-                   end=as.nanoduration(0)) {
-              ## validate parameter types LLL
-              if (!inherits(x, "nanotime")) {
-                  stop("'x' must have class 'nanotime'")
-              }
-              if (!inherits(y, "nanotime")) {
-                  stop ("'y' must have class 'nanotime'")
-              }
-              
-              .Call('_dtts_align_idx_duration', x, y, start, end)
-          })
+setMethod("align.idx", signature("nanotime", "nanotime", "nanoduration", "nanoduration"), align_idx_duration)
+setMethod("align.idx", signature("nanotime", "nanotime", "missing", "missing"), align_idx_duration)
+setMethod("align.idx", signature("nanotime", "nanotime", "missing", "nanoduration"), align_idx_duration)
+setMethod("align.idx", signature("nanotime", "nanotime", "nanoduration", "missing"), align_idx_duration)
 
 
-setMethod("align.idx",
-          signature("data.table", "nanotime", "nanoperiod", "nanoperiod"),
-          function(x,                         # time-series
-                   y,                         # nanotime vector
-                   start=as.nanoperiod(0),
-                   end=as.nanoperiod(0),
-                   tz) {
-               if (!inherits(y, "nanotime")) {
-                  stop ("'tz' must be a 'character'")
-              }
-             
-              .Call('_dtts_align_idx_period', x, y, start, end, tz)
-          })
+align_idx_period <- function(x,                         # time-series
+                             y,                         # nanotime vector
+                             start=as.nanoperiod(0),
+                             end=as.nanoperiod(0),
+                             tz)
+{
+    if (missing(start)) {
+        start <- as.nanoperiod(0)
+    }
+    if (missing(end)) {
+        end <- as.nanoperiod(0)
+    }
+    if (!inherits(tz, "character")) {
+        stop ("'tz' must be a 'character'")
+    }
+      
+    .Call('_dtts_align_idx_period', sort(x), sort(y), start, end, tz)
+}
+
+setMethod("align.idx", signature("nanotime", "nanotime", "nanoperiod", "nanoperiod"), align_idx_period)
+setMethod("align.idx", signature("nanotime", "nanotime", "missing", "nanoperiod"), align_idx_period)
+setMethod("align.idx", signature("nanotime", "nanotime", "nanoperiod", "missing"), align_idx_period)
 
 
 
@@ -80,23 +92,32 @@ align_duration <- function(x,                         # time-series
     if (missing(end)) {
         end <- as.nanoduration(0)
     }
+    if (!inherits(x[[1]], "nanotime")) {
+        stop("first column of `data.table` must be of type `nanotime`")
+    }
+    if (is.null(key(x)) || names(x)[1] != key(x)[1]) {
+        stop("first column of `data.table` must be the first key")
+    }
     
     if (!is.null(func)) {
         if (!is.function(func)) {
             stop ("'func' must be a function")
         }
-        data.table(index=y,
-                   do.call(rbind, .Call('_dtts_align_duration',
-                                        x[[1]],        # the index of the data.table
-                                        y,             # nanotime vector to align on
-                                        x,             # data.table data
-                                        start,
-                                        end,
-                                        func)))
+        res <- data.table(index=y,
+                          do.call(rbind, .Call('_dtts_align_duration',
+                                               x[[1]],        # the index of the data.table
+                                               sort(y),       # nanotime vector to align on
+                                               x,             # data.table data
+                                               start,
+                                               end,
+                                               func)))
+        setkeyv(res, key(x))
+        res
     }
     else {
-        res <- x[.Call('_dtts_align_idx_duration', x[[1]], y, start, end)]
-        res[[1]] <- y
+        sorted_y <- sort(y)
+        res <- x[.Call('_dtts_align_idx_duration', x[[1]], sorted_y, start, end)]
+        res[[1]] <- sorted_y
         res
     }
 }
@@ -163,24 +184,33 @@ align_period <- function(x,                           # time-series
     if (missing(end)) {
         end <- as.nanoperiod(0)
     }
+    if (!inherits(x[[1]], "nanotime")) {
+        stop("first column of `data.table` must be of type `nanotime`")
+    }
+    if (is.null(key(x)) || names(x)[1] != key(x)[1]) {
+        stop("first column of `data.table` must be the first key")
+    }
 
     if (!is.null(func)) {
         if (!is.function(func)) {
             stop ("'func' must be a function")
         }
-        data.table(index=y,
-                   do.call(rbind, .Call('_dtts_align_period',
-                                        x[[1]],        # the index of the data.table
-                                        y,             # nanotime vector to align on
-                                        x,             # data.table data
-                                        start,
-                                        end,
-                                        func,
-                                        tz)))
+        res <- data.table(index=y,
+                          do.call(rbind, .Call('_dtts_align_period',
+                                               x[[1]],        # the index of the data.table
+                                               sort(y),       # nanotime vector to align on
+                                               x,             # data.table data
+                                               start,
+                                               end,
+                                               func,
+                                               tz)))
+        setkeyv(res, key(x))
+        res
     }
     else {
-        res <- x[.Call('_dtts_align_idx_period', x[[1]], y, start, end, tz)]
-        res[[1]] <- y
+        sorted_y <- sort(y)
+        res <- x[.Call('_dtts_align_idx_period', x[[1]], sorted_y, start, end, tz)]
+        res[[1]] <- sorted_y
         res
     }
 }
@@ -192,7 +222,48 @@ setMethod("align", signature("data.table", "nanotime", "missing", "nanoperiod"),
 
 
 
-setGeneric("grid.align", function(x, ...) standardGeneric("grid.align"))
+setGeneric("grid.align", function(x, by, ...) standardGeneric("grid.align"))
+
+grid_align_duration <- function(x,                         # time-series
+                                by,                        # the grid size
+                                func,                      # function to apply on the subgroups
+                                ival=by,                   # the interval size
+                                start=x[[1]][1],           # start of the grid
+                                end=tail(x[[1]], 1))       # end of the grid
+{
+    grid <- seq(start+by, end, by=by)
+    if (tail(grid,1) < end) {
+        grid <- c(grid, tail(grid,1) + by)
+    }
+    ## else if (typeof(by) == "nanoperiod") {
+    ##     if (is.null(tz)) stop("tz must be specified when 'by' is a nanoperiod")
+    ##     grid <- seq(`+`(start,by,tz), end, by=by, tz=tz)
+    ##     if (tail(grid,1) < end) {
+    ##         c(--grid, `+`(tail(grid,1),by,tz))
+    ##     }
+    ## }
+    ## else stop("invalid type for 'by', must be 'nanoduration' or 'nanoperiod'")
+    
+    align(x, grid, -ival, as.nanoduration(0), func=func)
+}
+
+
+grid_align_period <- function(x,                         # time-series
+                              by,                        # the grid size
+                              func,                      # function to apply on the subgroups
+                              ival=by,                   # the interval size
+                              start=x[[1]][1],           # start of the grid
+                              end=tail(x[[1]], 1),       # end of the grid
+                              tz)                        # time zone when using 'period'
+{
+    grid <- seq(`+`(start,by,tz), end, by=by, tz=tz)
+    if (tail(grid,1) < end) {
+        grid  <- c(--grid, `+`(tail(grid,1),by,tz))
+    }
+
+    align(x, grid, -ival, as.nanoduration(0), func=func)
+}
+
 
 ##' Align a \code{data.table} onto a \code{nanotime} vector grid
 ##'
@@ -219,39 +290,14 @@ setGeneric("grid.align", function(x, ...) standardGeneric("grid.align"))
 ##' @examples
 ##' \dontrun{
 ##' one_second <- 1e9
-##' one_minute <- 60 * one_second
-##' x <- data.table(index=nanotime(cumsum(sin(seq(0.001, pi, 0.001)) * one_second)), 1)
-##' grid.align(x, as.integer64(one_minute), sum)
+##' x <- data.table(index=nanotime(cumsum(sin(seq(0.001, pi, 0.001)) * one_second)))
+##' x <- x[, V2 := 1:nrow(x)]
+##' setkey(x, index)
+##' grid.align(x, as.nanoduration("00:01:00"), sum)
 ##' }
-setMethod("grid.align",
-          signature("data.table"),
-          function(x,                         # time-series
-                   by,                        # the grid size
-                   func,                      # function to apply on the subgroups
-                   ival=by,                   # the interval size
-                   start=x[[1]][1],           # start of the grid
-                   end=tail(x[[1]], 1))       # time zone when using 'period'
-          {
-              ## if (typeof(by) == "nanoduration") {
-              if (inherits(by, "integer64")) {
-                  grid <- seq(start+by, end, by=by) # why do I need to qualify seq here???
-                  if (tail(grid,1) < end) {
-                      c(grid, tail(grid,1) + by)
-                  }
-              }
-              ## else if (typeof(by) == "nanoperiod") {
-              ##     if (is.null(tz)) stop("tz must be specified when 'by' is a nanoperiod")
-              ##     grid <- seq(`+`(start,by,tz), end, by=by, tz=tz)
-              ##     if (tail(grid,1) < end) {
-              ##         c(--grid, `+`(tail(grid,1),by,tz))
-              ##     }
-              ## }
-              ## else stop("invalid type for 'by', must be 'nanoduration' or 'nanoperiod'")
-              else stop("invalid type for 'by', must be 'integer64'")
-              
-              align(x, grid, -ival, as.integer64(0), func=func)
-          })
-          
+setMethod("grid.align", signature("data.table", "nanoduration"), grid_align_duration)
+setMethod("grid.align", signature("data.table", "nanoperiod"),   grid_align_period)
+ 
 
 ##' Return the number of observations per interval
 ##'
