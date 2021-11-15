@@ -5,7 +5,7 @@ import("bit64")
 import("nanotime")
 import("data.table")
 
-export("align.idx")
+exportMethods("align.idx")
 exportMethods("align")
 exportMethods("grid.align")
 exportMethods("frequency")

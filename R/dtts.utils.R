@@ -3,7 +3,9 @@ setGeneric("align.idx", function(x, y, start, end, ...) standardGeneric("align.i
 align_idx_duration <- function(x,                         # time-series
                                y,                         # nanotime vector
                                start=as.nanoduration(0),
-                               end=as.nanoduration(0))
+                               end=as.nanoduration(0),
+                               sopen = FALSE,
+                               eopen = TRUE)
 {
     if (missing(start)) {
         start <- as.nanoduration(0)
@@ -12,7 +14,7 @@ align_idx_duration <- function(x,                         # time-series
         end <- as.nanoduration(0)
     }
     
-    .Call('_dtts_align_idx_duration', sort(x), sort(y), start, end)
+    .Call('_dtts_align_idx_duration', sort(x), sort(y), start, end, eopen, sopen)
 }
 
 ##' Get the index of the alignment of one vector onto another

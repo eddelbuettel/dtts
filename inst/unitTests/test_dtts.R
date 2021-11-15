@@ -249,7 +249,20 @@ test_frequency <- function() {
     rows <- 100
     t1 <- nanotime(1:rows * one_second_duration)
     dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
-    res <- frequency(dt1, as.integer64(30*one_second_duration))
+    setkey(dt1, index)   
+    res <- frequency(dt1, by=30*one_second_duration)
+    exp <- tail(data.table(index=nanotime(seq(dt1$index[1], by=30*one_second_duration, length.out=4)), V1=30), -1)
+    exp <- rbind(exp, data.table(index=tail(exp$index,1)+30*one_second_duration, V1=10))
+    setkey(exp, index)
+    checkEquals(res, exp)
+}
+test_frequency_start_end <- function() {
+    cols <- 3
+    rows <- 100
+    t1 <- nanotime(1:rows * one_second_duration)
+    dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
+    setkey(dt1, index)   
+    res <- frequency(dt1, by=30*one_second_duration, start=nanotime(0), end=nanotime(0) + 2*30*one_second_duration)
     exp <- data.table(index=nanotime(seq(dt1$index[1], by=30*one_second_duration, length.out=3)), V1=30)
     checkEquals(res, exp)
 }
