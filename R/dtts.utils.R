@@ -13,8 +13,21 @@ align_idx_duration <- function(x,                         # time-series
     if (missing(end)) {
         end <- as.nanoduration(0)
     }
+    if (!is.logical(sopen)) {
+        stop("'sopen' must be a 'logical'")
+    }
+    if (!is.logical(eopen)) {
+        stop("'eopen' must be a 'logical'")
+    }
+    ## if (start==as.nanoperiod(0) && end==as.nanoperiod(0)) {
+    ##     ## this is a case where the likely behavior should be to find equal alignment
+    ##     ## TODO: ask Dirk what he thinks, not clear to me we want this...
+    ##     if (missing(eopen)) {
+    ##         eopen = FALSE
+    ##     }
+    ## }
     
-    .Call('_dtts_align_idx_duration', sort(x), sort(y), start, end, eopen, sopen)
+    .Call('_dtts_align_idx_duration', sort(x), sort(y), start, end, sopen, eopen)
 }
 
 ##' Get the index of the alignment of one vector onto another
@@ -58,6 +71,8 @@ align_idx_period <- function(x,                         # time-series
                              y,                         # nanotime vector
                              start=as.nanoperiod(0),
                              end=as.nanoperiod(0),
+                             sopen = FALSE,
+                             eopen = TRUE,
                              tz)
 {
     if (missing(start)) {
@@ -66,11 +81,17 @@ align_idx_period <- function(x,                         # time-series
     if (missing(end)) {
         end <- as.nanoperiod(0)
     }
-    if (!inherits(tz, "character")) {
+    if (!is.logical(sopen)) {
+        stop("'sopen' must be a 'logical'")
+    }
+    if (!is.logical(eopen)) {
+        stop("'eopen' must be a 'logical'")
+    }
+    if (!is.character(tz)) {
         stop ("'tz' must be a 'character'")
     }
       
-    .Call('_dtts_align_idx_period', sort(x), sort(y), start, end, tz)
+    .Call('_dtts_align_idx_period', sort(x), sort(y), start, end, sopen, eopen, tz)
 }
 
 setMethod("align.idx", signature("nanotime", "nanotime", "nanoperiod", "nanoperiod"), align_idx_period)
@@ -86,6 +107,8 @@ align_duration <- function(x,                         # time-series
                            y,                         # nanotime vector
                            start=as.nanoduration(0),
                            end=as.nanoduration(0), 
+                           sopen = FALSE,
+                           eopen = TRUE,
                            func=NULL)
 {
     if (missing(start)) {
@@ -100,7 +123,12 @@ align_duration <- function(x,                         # time-series
     if (is.null(key(x)) || names(x)[1] != key(x)[1]) {
         stop("first column of `data.table` must be the first key")
     }
-    
+    if (!is.logical(sopen)) {
+        stop("'sopen' must be a 'logical'")
+    }
+    if (!is.logical(eopen)) {
+        stop("'eopen' must be a 'logical'")
+    }    
     if (!is.null(func)) {
         if (!is.function(func)) {
             stop ("'func' must be a function")
@@ -112,13 +140,16 @@ align_duration <- function(x,                         # time-series
                                                x,             # data.table data
                                                start,
                                                end,
+                                               sopen,
+                                               eopen,
                                                func)))
         setkeyv(res, key(x))
         res
     }
     else {
+        ## if no function is supplied, make closest alignment:
         sorted_y <- sort(y)
-        res <- x[.Call('_dtts_align_idx_duration', x[[1]], sorted_y, start, end)]
+        res <- x[.Call('_dtts_align_idx_duration', x[[1]], sorted_y, start, end, sopen, eopen)]
         res[[1]] <- sorted_y
         res
     }
@@ -176,6 +207,8 @@ align_period <- function(x,                           # time-series
                          y,                           # nanotime vector
                          start=as.nanoperiod(0),
                          end=as.nanoperiod(0),
+                         sopen = FALSE,
+                         eopen = TRUE,
                          tz,
                          func=NULL)
 {
@@ -189,10 +222,18 @@ align_period <- function(x,                           # time-series
     if (!inherits(x[[1]], "nanotime")) {
         stop("first column of `data.table` must be of type `nanotime`")
     }
+    if (!is.logical(sopen)) {
+        stop("'sopen' must be a 'logical'")
+    }
+    if (!is.logical(eopen)) {
+        stop("'eopen' must be a 'logical'")
+    }    
+    if (!is.character(tz)) {
+        stop ("'tz' must be a 'character'")
+    }
     if (is.null(key(x)) || names(x)[1] != key(x)[1]) {
         stop("first column of `data.table` must be the first key")
     }
-
     if (!is.null(func)) {
         if (!is.function(func)) {
             stop ("'func' must be a function")
@@ -204,14 +245,17 @@ align_period <- function(x,                           # time-series
                                                x,             # data.table data
                                                start,
                                                end,
+                                               sopen,
+                                               eopen,
                                                func,
                                                tz)))
         setkeyv(res, key(x))
         res
     }
     else {
+        ## if no function is supplied, make closest alignment:
         sorted_y <- sort(y)
-        res <- x[.Call('_dtts_align_idx_period', x[[1]], sorted_y, start, end, tz)]
+        res <- x[.Call('_dtts_align_idx_period', x[[1]], sorted_y, start, end, sopen, eopen, tz)]
         res[[1]] <- sorted_y
         res
     }
@@ -237,14 +281,6 @@ grid_align_duration <- function(x,                         # time-series
     if (tail(grid,1) < end) {
         grid <- c(grid, tail(grid,1) + by)
     }
-    ## else if (typeof(by) == "nanoperiod") {
-    ##     if (is.null(tz)) stop("tz must be specified when 'by' is a nanoperiod")
-    ##     grid <- seq(`+`(start,by,tz), end, by=by, tz=tz)
-    ##     if (tail(grid,1) < end) {
-    ##         c(--grid, `+`(tail(grid,1),by,tz))
-    ##     }
-    ## }
-    ## else stop("invalid type for 'by', must be 'nanoduration' or 'nanoperiod'")
     
     align(x, grid, -ival, as.nanoduration(0), func=func)
 }
@@ -263,7 +299,7 @@ grid_align_period <- function(x,                         # time-series
         grid  <- c(--grid, `+`(tail(grid,1),by,tz))
     }
 
-    align(x, grid, -ival, as.nanoduration(0), func=func)
+    align(x, grid, -ival, as.nanoduration(0), func=func, tz=tz)
 }
 
 
