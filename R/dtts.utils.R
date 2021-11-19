@@ -274,10 +274,10 @@ grid_align_duration <- function(x,                         # time-series
                                 by,                        # the grid size
                                 func,                      # function to apply on the subgroups
                                 ival=by,                   # the interval size
-                                start=x[[1]][1],           # start of the grid
+                                start=x[[1]][1] + by,      # start of the grid
                                 end=tail(x[[1]], 1))       # end of the grid
 {
-    grid <- seq(start+by, end, by=by)
+    grid <- seq(start, end, by=by)
     if (tail(grid,1) < end) {
         grid <- c(grid, tail(grid,1) + by)
     }
@@ -286,20 +286,20 @@ grid_align_duration <- function(x,                         # time-series
 }
 
 
-grid_align_period <- function(x,                         # time-series
-                              by,                        # the grid size
-                              func,                      # function to apply on the subgroups
-                              ival=by,                   # the interval size
-                              start=x[[1]][1],           # start of the grid
-                              end=tail(x[[1]], 1),       # end of the grid
-                              tz)                        # time zone when using 'period'
+grid_align_period <- function(x,                              # time-series
+                              by,                             # the grid size
+                              func,                           # function to apply on the subgroups
+                              ival=by,                        # the interval size
+                              start=plus(x[[1]][1], by, tz),  # start of the grid
+                              end=tail(x[[1]], 1),            # end of the grid
+                              tz)                             # time zone when using 'period'
 {
-    grid <- seq(`+`(start,by,tz), end, by=by, tz=tz)
+    grid <- seq(start, end, by=by, tz=tz)
     if (tail(grid,1) < end) {
-        grid  <- c(--grid, `+`(tail(grid,1),by,tz))
+        grid  <- c(grid, plus(tail(grid,1), by, tz))
     }
 
-    align(x, grid, -ival, as.nanoduration(0), func=func, tz=tz)
+    align(x, grid, -ival, as.nanoperiod(0), func=func, tz=tz)
 }
 
 
@@ -361,12 +361,31 @@ setMethod("grid.align", signature("data.table", "nanoperiod"),   grid_align_peri
 ##' 
 ##' @examples
 ##' \dontrun{
-##' one_second <- 1e9
+##' one_second <- as.nanoduration("00:00:01")
 ##' one_minute <- 60 * one_second
 ##' x <- data.table(index=nanotime(cumsum(sin(seq(0.001, pi, 0.001)) * one_second)), 1)
-##' frequency(x, as.integer64(one_minute))
+##' frequency(x, one_minute)
 ##' }
 setMethod("frequency",
           signature("data.table"),
-          function(x, by, ival=by, start=x[[1]][1], end=tail(x[[1]], 1))
-              grid.align(x, by, function(y) if (is.null(y)) 0 else nrow(y), ival, start, end))
+          function(x, by, ival=by, start, end, tz) {
+              if (missing(end)) {
+                  end = tail(x[[1]], 1)
+              }
+              if (inherits(by, "nanoduration")) {
+                  if (missing(start)) {
+                      start = x[[1]][1] + by
+                  }
+                  grid.align(x, by, function(y) if (is.null(y)) 0 else nrow(y), ival, start, end)
+              }
+              else if (inherits(by, "nanoperiod")) {
+                  if (missing(start)) {
+                      start = plus(x[[1]][1], by, tz)
+                      print(start)
+                  }
+                  grid.align(x, by, function(y) if (is.null(y)) 0 else nrow(y), ival, start, end, tz)
+              }
+              else {
+                  stop("argument 'by' must be either 'nanoduration' or 'nanotime'")
+              }
+          })

@@ -280,7 +280,7 @@ test_align.func.equal_incorrect_dt <- function() {
 }
 ## LLL also check that if dt1 is not ordered on its first column then we will throw an error
 
-test_frequency <- function() {
+test_frequency_duration <- function() {
     cols <- 3
     rows <- 100
     t1 <- nanotime(1:rows * one_second_duration)
@@ -292,14 +292,39 @@ test_frequency <- function() {
     setkey(exp, index)
     checkEquals(res, exp)
 }
-test_frequency_start_end <- function() {
+test_frequency_start_end_duration <- function() {
     cols <- 3
     rows <- 100
-    t1 <- nanotime(1:rows * one_second_duration)
-    dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
+    t1 <- nanotime(0:(rows-1) * one_second_duration)
+    dt1 <- data.table(index=t1, matrix(0:(rows*cols-1), rows, cols))
     setkey(dt1, index)   
     res <- frequency(dt1, by=30*one_second_duration, start=nanotime(0), end=nanotime(0) + 2*30*one_second_duration)
-    exp <- data.table(index=nanotime(seq(dt1$index[1], by=30*one_second_duration, length.out=3)), V1=30)
+    exp <- data.table(index=nanotime(seq(dt1$index[1], by=30*one_second_duration, length.out=3)), V1=c(0, 30, 30))
+    setkey(exp, index)
     checkEquals(res, exp)
 }
 
+test_frequency_period <- function() {
+    t1 <- seq(nanotime("2021-02-01 00:00:00 America/New_York"), nanotime("2021-04-01 00:00:00 America/New_York"),
+              by=as.nanoperiod("01:00:00"), tz="America/New_York")
+    dt1 <- data.table(index=t1, V1=1:length(t1))
+    setkey(dt1, index)   
+    res <- frequency(dt1, by=as.nanoperiod("1d"), tz="America/New_York")
+
+    t2 <- seq(nanotime("2021-02-02 00:00:00 America/New_York"), nanotime("2021-04-01 00:00:00 America/New_York"),
+              by=as.nanoperiod("1d"), tz="America/New_York")
+    exp <- data.table(index=t2, V1=24)
+    exp[index=="2021-03-15T04:00:00+00:00", V1 := 23] # the dailight transition day
+    setkey(exp, index)
+    checkEquals(res, exp)
+}
+
+
+if (FALSE) {
+    ## don't do this; must appear in vignette!
+
+    t2 <- seq(nanotime("2021-02-02 00:00:00 America/New_York"), nanotime("2021-04-01 00:00:00 America/New_York"),
+              by=as.nanoperiod("1d"), tz="America/New_York")
+    exp <- data.table(index=t2, V1=24)
+    exp[index=="2021-03-15T04:00:00+00:00"] <- 1e9
+}
