@@ -13,41 +13,13 @@
 \usage{
 align.idx(x, y, start, end, ...)
 
-\S4method{align.idx}{nanotime,nanotime,nanoduration,nanoduration}(
-  x,
-  y,
-  start = as.nanoduration(0),
-  end = as.nanoduration(0),
-  sopen = FALSE,
-  eopen = TRUE
-)
+\S4method{align.idx}{nanotime,nanotime,nanoduration,nanoduration}(x, y, start, end, sopen = FALSE, eopen = TRUE)
 
-\S4method{align.idx}{nanotime,nanotime,missing,missing}(
-  x,
-  y,
-  start = as.nanoduration(0),
-  end = as.nanoduration(0),
-  sopen = FALSE,
-  eopen = TRUE
-)
+\S4method{align.idx}{nanotime,nanotime,missing,missing}(x, y, start, end, sopen = FALSE, eopen = TRUE)
 
-\S4method{align.idx}{nanotime,nanotime,missing,nanoduration}(
-  x,
-  y,
-  start = as.nanoduration(0),
-  end = as.nanoduration(0),
-  sopen = FALSE,
-  eopen = TRUE
-)
+\S4method{align.idx}{nanotime,nanotime,missing,nanoduration}(x, y, start, end, sopen = FALSE, eopen = TRUE)
 
-\S4method{align.idx}{nanotime,nanotime,nanoduration,missing}(
-  x,
-  y,
-  start = as.nanoduration(0),
-  end = as.nanoduration(0),
-  sopen = FALSE,
-  eopen = TRUE
-)
+\S4method{align.idx}{nanotime,nanotime,nanoduration,missing}(x, y, start, end, sopen = FALSE, eopen = TRUE)
 
 \S4method{align.idx}{nanotime,nanotime,nanoperiod,nanoperiod}(
   x,
@@ -85,21 +57,37 @@ align.idx(x, y, start, end, ...)
 \item{y}{the \code{nanotime} vector to align to}
 
 \item{start}{scalar or vector of same length as \code{y} of type
-\code{nanoduration}; \code{start} is added to each element in
-\code{y} and it then defines the starting point of the
-interval under consideration for the alignement on that
-element of \code{y}}
+\code{nanoduration} or \code{nanoperiod}; \code{start} is
+added to each element in \code{y} and it then defines the
+starting point of the interval under consideration for the
+alignment on that element of \code{y}}
 
 \item{end}{scalar or vector of same length as \code{y} of type
-\code{nanoduration}; \code{start} is added to each element in
-\code{y} and it then defines the ending point of the interval
-under consideration for the alignement on that element of
-\code{y}}
+\code{nanoduration} or \code{nanoperiod}; \code{start} is
+added to each element in \code{y} and it then defines the
+ending point of the interval under consideration for the
+alignment on that element of \code{y}}
+
+\item{...}{further arguments passed to or from methods.}
+
+\item{sopen}{boolean scalar or vector of same lengths as \code{y}
+that indicates if the start of the interval is open or
+closed. Defaults to FALSE.}
+
+\item{eopen}{boolean scalar or vector of same lengths as \code{y}
+that indicates if the end of the interval is open or
+closed. Defaults to TRUE.}
+
+\item{tz}{scalar or vector of same length as \code{y} of type
+character. Only used when the type of \code{start} and
+\code{end} is \code{nanoperiod}. It defines the time zone for
+the definition of the interval.}
 }
 \value{
 a vector of indices of the same length as \code{y}; this
-    vector indexes into \code{x} and represents the points in
-    \code{x} that are aligned with the points in \code{y}
+    vector indexes into \code{x} and represent the closest point
+    of \code{x} that is in the interval defined around each point
+    in \code{y}
 }
 \description{
 \code{align.idx} returns the index of the alignment of \code{x} on \code{y}
@@ -110,10 +98,20 @@ each elements in \code{y} using \code{start} and \code{end}. For
 each such interval, the closest element in \code{x} is chosen. If
 no element in \code{x} falls in the interval, then NaN is
 returned.
+
+When only \code{x} and \code{y} are specified, the
+    default is to close the intervals so that the alignment simply
+    picks up equal points. Note that it is possible to specify
+    meaningless intervals, for instance with a \code{start} that
+    is beyond \code{end}. In this case, the alignment will simply
+    return NA for each element in \code{y}. In principle, the
+    \code{start} and \code{end} are chosen to define an interval
+    is the past, or around the points in \code{y}, but if they are
+    both positive, they can define intervals in the future.
 }
 \examples{
 \dontrun{
-align.idx(nanotime(c(10:14, 17:19)), nanotime(11:20), as.nanoduration(-1), as.nanoduration(0))
-## [1]  2  3  4  5  5 NA  6  7  8  8
+align.idx(nanotime(c(10:14, 17:19)), nanotime(11:20))
+## [1]  2  3  4  5  NA NA  6  7  8  NA
 }
 }

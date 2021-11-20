@@ -1,10 +1,11 @@
 useDynLib(dtts)
 import("methods")
 import("Rcpp")
+import("RcppCCTZ")
 import("bit64")
 import("nanotime")
 import("data.table")
-
+importFrom("utils", "tail")
 exportMethods("align.idx")
 exportMethods("align")
 exportMethods("grid.align")
