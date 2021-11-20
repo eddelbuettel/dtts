@@ -2,9 +2,82 @@
 % Please edit documentation in R/dtts.utils.R
 \name{align.idx}
 \alias{align.idx}
+\alias{align.idx,nanotime,nanotime,nanoduration,nanoduration-method}
+\alias{align.idx,nanotime,nanotime,missing,missing-method}
+\alias{align.idx,nanotime,nanotime,missing,nanoduration-method}
+\alias{align.idx,nanotime,nanotime,nanoduration,missing-method}
+\alias{align.idx,nanotime,nanotime,nanoperiod,nanoperiod-method}
+\alias{align.idx,nanotime,nanotime,missing,nanoperiod-method}
+\alias{align.idx,nanotime,nanotime,nanoperiod,missing-method}
 \title{Get the index of the alignment of one vector onto another}
 \usage{
-align.idx(x, y, start = as.integer64(0), end = as.integer64(0))
+align.idx(x, y, start, end, ...)
+
+\S4method{align.idx}{nanotime,nanotime,nanoduration,nanoduration}(
+  x,
+  y,
+  start = as.nanoduration(0),
+  end = as.nanoduration(0),
+  sopen = FALSE,
+  eopen = TRUE
+)
+
+\S4method{align.idx}{nanotime,nanotime,missing,missing}(
+  x,
+  y,
+  start = as.nanoduration(0),
+  end = as.nanoduration(0),
+  sopen = FALSE,
+  eopen = TRUE
+)
+
+\S4method{align.idx}{nanotime,nanotime,missing,nanoduration}(
+  x,
+  y,
+  start = as.nanoduration(0),
+  end = as.nanoduration(0),
+  sopen = FALSE,
+  eopen = TRUE
+)
+
+\S4method{align.idx}{nanotime,nanotime,nanoduration,missing}(
+  x,
+  y,
+  start = as.nanoduration(0),
+  end = as.nanoduration(0),
+  sopen = FALSE,
+  eopen = TRUE
+)
+
+\S4method{align.idx}{nanotime,nanotime,nanoperiod,nanoperiod}(
+  x,
+  y,
+  start = as.nanoperiod(0),
+  end = as.nanoperiod(0),
+  sopen = FALSE,
+  eopen = TRUE,
+  tz
+)
+
+\S4method{align.idx}{nanotime,nanotime,missing,nanoperiod}(
+  x,
+  y,
+  start = as.nanoperiod(0),
+  end = as.nanoperiod(0),
+  sopen = FALSE,
+  eopen = TRUE,
+  tz
+)
+
+\S4method{align.idx}{nanotime,nanotime,nanoperiod,missing}(
+  x,
+  y,
+  start = as.nanoperiod(0),
+  end = as.nanoperiod(0),
+  sopen = FALSE,
+  eopen = TRUE,
+  tz
+)
 }
 \arguments{
 \item{x}{the \code{nanotime} vector to align from}
@@ -12,13 +85,13 @@ align.idx(x, y, start = as.integer64(0), end = as.integer64(0))
 \item{y}{the \code{nanotime} vector to align to}
 
 \item{start}{scalar or vector of same length as \code{y} of type
-\code{integer64}; \code{start} is added to each element in
+\code{nanoduration}; \code{start} is added to each element in
 \code{y} and it then defines the starting point of the
 interval under consideration for the alignement on that
 element of \code{y}}
 
 \item{end}{scalar or vector of same length as \code{y} of type
-\code{integer64}; \code{start} is added to each element in
+\code{nanoduration}; \code{start} is added to each element in
 \code{y} and it then defines the ending point of the interval
 under consideration for the alignement on that element of
 \code{y}}
@@ -40,7 +113,7 @@ returned.
 }
 \examples{
 \dontrun{
-align.idx(nanotime(c(10:14, 17:19)), nanotime(11:20), as.integer64(-1), as.integer64(0))
+align.idx(nanotime(c(10:14, 17:19)), nanotime(11:20), as.nanoduration(-1), as.nanoduration(0))
 ## [1]  2  3  4  5  5 NA  6  7  8  8
 }
 }

@@ -1,4 +1,3 @@
-setGeneric("align.idx", function(x, y, start, end, ...) standardGeneric("align.idx"))
 
 align_idx_duration <- function(x,                         # time-series
                                y,                         # nanotime vector
@@ -56,14 +55,25 @@ align_idx_duration <- function(x,                         # time-series
 ##'     vector indexes into \code{x} and represents the points in
 ##'     \code{x} that are aligned with the points in \code{y}
 ##'
+##' @rdname align.idx
+##'
 ##' @examples
 ##' \dontrun{
 ##' align.idx(nanotime(c(10:14, 17:19)), nanotime(11:20), as.nanoduration(-1), as.nanoduration(0))
 ##' ## [1]  2  3  4  5  5 NA  6  7  8  8
 ##' }
+setGeneric("align.idx", function(x, y, start, end, ...) standardGeneric("align.idx"))
+
+##' @rdname align.idx
 setMethod("align.idx", signature("nanotime", "nanotime", "nanoduration", "nanoduration"), align_idx_duration)
+
+##' @rdname align.idx
 setMethod("align.idx", signature("nanotime", "nanotime", "missing", "missing"), align_idx_duration)
+
+##' @rdname align.idx
 setMethod("align.idx", signature("nanotime", "nanotime", "missing", "nanoduration"), align_idx_duration)
+
+##' @rdname align.idx
 setMethod("align.idx", signature("nanotime", "nanotime", "nanoduration", "missing"), align_idx_duration)
 
 
@@ -94,8 +104,14 @@ align_idx_period <- function(x,                         # time-series
     .Call('_dtts_align_idx_period', sort(x), sort(y), start, end, sopen, eopen, tz)
 }
 
+
+##' @rdname align.idx
 setMethod("align.idx", signature("nanotime", "nanotime", "nanoperiod", "nanoperiod"), align_idx_period)
+
+##' @rdname align.idx
 setMethod("align.idx", signature("nanotime", "nanotime", "missing", "nanoperiod"), align_idx_period)
+
+##' @rdname align.idx
 setMethod("align.idx", signature("nanotime", "nanotime", "nanoperiod", "missing"), align_idx_period)
 
 
@@ -188,19 +204,23 @@ align_duration_both_missing <- function(x, y) align_duration(x, y)
 ##'     \code{y}; this is a subset of \code{x} with the
 ##'     \code{nanotime} index of \code{y}
 ##' 
+##' @rdname align
+##'
 ##' @examples
 ##' \dontrun{
 ##' y <- nanotime((1:10)*1e9)
 ##' x <- data.table(index=nanotime((1:10)*1e9), data=1:10)
-##' align(x, y, as.integer64(-1e9), as.integer64(1e9), colMeans)
+##' align(x, y, as.nanoduration(-1e9), as.nanoduration(1e9), colMeans)
 ##' }
 ##'
 ##'
 setMethod("align", signature("data.table", "nanotime", "nanoduration", "nanoduration"), align_duration)
+##' @rdname align
 setMethod("align", signature("data.table", "nanotime", "missing", "missing"), align_duration)
+##' @rdname align
 setMethod("align", signature("data.table", "nanotime", "nanoduration", "missing"), align_duration)
+##' @rdname align
 setMethod("align", signature("data.table", "nanotime", "missing", "nanoduration"), align_duration)
-
 
 
 align_period <- function(x,                           # time-series
@@ -262,8 +282,11 @@ align_period <- function(x,                           # time-series
 }
 
 
+##' @rdname align
 setMethod("align", signature("data.table", "nanotime", "nanoperiod", "nanoperiod"), align_period)
+##' @rdname align
 setMethod("align", signature("data.table", "nanotime", "nanoperiod", "missing"), align_period)
+##' @rdname align
 setMethod("align", signature("data.table", "nanotime", "missing", "nanoperiod"), align_period)
 
 
@@ -273,33 +296,41 @@ setGeneric("grid.align", function(x, by, ...) standardGeneric("grid.align"))
 grid_align_duration <- function(x,                         # time-series
                                 by,                        # the grid size
                                 func,                      # function to apply on the subgroups
-                                ival=by,                   # the interval size
+                                ival_start=-by,            # the interval start
+                                ival_end=as.nanoperiod(0), # the interval end
+                                ival_sopen=FALSE,          # the interval start open 
+                                ival_eopen=TRUE,           # the interval end open
                                 start=x[[1]][1] + by,      # start of the grid
                                 end=tail(x[[1]], 1))       # end of the grid
 {
+    print("grid_align_duration")
     grid <- seq(start, end, by=by)
     if (tail(grid,1) < end) {
         grid <- c(grid, tail(grid,1) + by)
     }
     
-    align(x, grid, -ival, as.nanoduration(0), func=func)
+    align(x, grid, ival_start, ival_end, ival_sopen, ival_eopen, func)
 }
 
 
 grid_align_period <- function(x,                              # time-series
                               by,                             # the grid size
                               func,                           # function to apply on the subgroups
-                              ival=by,                        # the interval size
+                              ival_start=-by,                 # the interval start
+                              ival_end=as.nanoperiod(0),      # the interval end
+                              ival_sopen=FALSE,               # the interval start open 
+                              ival_eopen=TRUE,                # the interval end open
                               start=plus(x[[1]][1], by, tz),  # start of the grid
                               end=tail(x[[1]], 1),            # end of the grid
                               tz)                             # time zone when using 'period'
 {
+    print("grid_align_period")
     grid <- seq(start, end, by=by, tz=tz)
     if (tail(grid,1) < end) {
         grid  <- c(grid, plus(tail(grid,1), by, tz))
     }
 
-    align(x, grid, -ival, as.nanoperiod(0), func=func, tz=tz)
+    align(x, grid, ival_start, ival_end, ival_sopen, ival_eopen, tz, func)
 }
 
 
@@ -325,6 +356,8 @@ grid_align_period <- function(x,                              # time-series
 ##' @return a \code{data.table} time-series of the same length as
 ##'     \code{y} with the aggregations computed by \code{func}
 ##' 
+##' @rdname grid.align
+##'
 ##' @examples
 ##' \dontrun{
 ##' one_second <- 1e9
@@ -334,6 +367,7 @@ grid_align_period <- function(x,                              # time-series
 ##' grid.align(x, as.nanoduration("00:01:00"), sum)
 ##' }
 setMethod("grid.align", signature("data.table", "nanoduration"), grid_align_duration)
+##' @rdname grid.align
 setMethod("grid.align", signature("data.table", "nanoperiod"),   grid_align_period)
  
 
@@ -368,7 +402,7 @@ setMethod("grid.align", signature("data.table", "nanoperiod"),   grid_align_peri
 ##' }
 setMethod("frequency",
           signature("data.table"),
-          function(x, by, ival=by, start, end, tz) {
+          function(x, by, ival_start=-by, ival_end, ival_sopen=FALSE, ival_eopen=TRUE, start, end, tz) {
               if (missing(end)) {
                   end = tail(x[[1]], 1)
               }
@@ -376,14 +410,19 @@ setMethod("frequency",
                   if (missing(start)) {
                       start = x[[1]][1] + by
                   }
-                  grid.align(x, by, function(y) if (is.null(y)) 0 else nrow(y), ival, start, end)
+                  if (missing(ival_end)) {
+                      ival_end = as.nanoduration(0)
+                  }
+                  grid.align(x, by, function(y) if (is.null(y)) 0 else nrow(y), ival_start, ival_end, ival_sopen, ival_eopen, start, end)
               }
               else if (inherits(by, "nanoperiod")) {
                   if (missing(start)) {
                       start = plus(x[[1]][1], by, tz)
-                      print(start)
                   }
-                  grid.align(x, by, function(y) if (is.null(y)) 0 else nrow(y), ival, start, end, tz)
+                  if (missing(ival_end)) {
+                      ival_end = nanoperiod(0)
+                  }
+                  grid.align(x, by, function(y) if (is.null(y)) 0 else nrow(y), ival_start, ival_end, ival_sopen, ival_eopen, start, end, tz)
               }
               else {
                   stop("argument 'by' must be either 'nanoduration' or 'nanotime'")

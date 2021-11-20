@@ -165,8 +165,8 @@ test_align.func.variable_start_end_overlapping <- function() {
     ## test using a non-scalar 'start' and 'end' parameters
     cols <- 3
     rows <- 100
-    t1 <- nanotime(0:rows * one_second_duration)
-    dt1 <- data.table(index=t1, matrix(0:(rows*cols), rows, cols))
+    t1 <- nanotime(0:(rows-1) * one_second_duration)
+    dt1 <- data.table(index=t1, matrix(0:(rows*cols-1), rows, cols))
     setkey(dt1, index)
     t2 <- nanotime(1:9 * one_second_duration * 10)
 
