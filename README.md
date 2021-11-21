@@ -74,8 +74,16 @@ type, the argument `tz` is necessary in order to give meaning to the
 interval. With `nanoperiod`, alignments are time-zone aware and
 correct across daylight saving time.
 
+This figure shows an alignment using the "closest"
+point as data:
 
 <img src="./inst/images/align_closest.svg">
+
+
+This figure shows an alignment using a statistic
+(here simply counting the number of elements in the intervals):
+
+<img src="./inst/images/align_count.svg">
 
 
 #### `align.idx`
@@ -204,9 +212,9 @@ Which produces:
 #### `frequency`
 
 Frequency is yet one abtraction higher and is basically `grid.align`
-with a default function which is the counting of the number of
-elements in each interval. `frequency` is in fact equivalent to a call
-of `grid.align` with the function `func` being:
+with a default function that counts the number of elements in each
+interval. `frequency` is in fact equivalent to a call of `grid.align`
+with the function `func` being:
 
 ~~~ R
 function(y) if (is.null(y)) 0 else nrow(y)
