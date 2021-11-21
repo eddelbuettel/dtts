@@ -15,7 +15,7 @@ grid.align(x, by, ...)
   start = x[[1]][1] + by,
   end = tail(x[[1]], 1),
   ival_start = -by,
-  ival_end = as.nanoperiod(0),
+  ival_end = as.nanoduration(0),
   ival_sopen = FALSE,
   ival_eopen = TRUE
 )

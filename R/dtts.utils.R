@@ -329,15 +329,15 @@ setMethod("align", signature("data.table", "nanotime", "missing", "nanoperiod"),
 ##' @rdname grid.align
 setGeneric("grid.align", function(x, by, ...) standardGeneric("grid.align"))
 
-grid_align_duration <- function(x,                         # time-series
-                                by,                        # the grid size
-                                func,                      # function to apply on the subgroups
-                                start=x[[1]][1] + by,      # start of the grid
-                                end=tail(x[[1]], 1),       # end of the grid
-                                ival_start=-by,            # the interval start
-                                ival_end=as.nanoperiod(0), # the interval end
-                                ival_sopen=FALSE,          # the interval start open 
-                                ival_eopen=TRUE)           # the interval end open
+grid_align_duration <- function(x,                           # time-series
+                                by,                          # the grid size
+                                func,                        # function to apply on the subgroups
+                                start=x[[1]][1] + by,        # start of the grid
+                                end=tail(x[[1]], 1),         # end of the grid
+                                ival_start=-by,              # the interval start
+                                ival_end=as.nanoduration(0), # the interval end
+                                ival_sopen=FALSE,            # the interval start open 
+                                ival_eopen=TRUE)             # the interval end open
 {
     print("grid_align_duration")
     grid <- seq(start, end, by=by)
