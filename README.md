@@ -1,10 +1,11 @@
-Alignment functions and other utilities for `data.table` time-series.
+# Alignment functions and other utilities for `data.table` time-series.
 
-### Motivation
+## Motivation
 
-`data.table` allows the creation of time-series by creating a first
-column with a temporal type. The functions in this package assume this
-temporal type is `nanotime`.
+[`data.table`](https://CRAN.R-project.org/package=data.table) allows
+the creation of time-series by creating a first column with a temporal
+type. The functions in this package assume this temporal type is
+[`nanotime`](https://CRAN.R-project.org/package=nanotime).
 
 All the standard `data.table` functions can be used with such a
 time-series. The goal of this package is to consolidate this
@@ -17,10 +18,27 @@ easily. And example of this is shown in the package itself with the
 function `frequency`.
 
 
-### Creating a `data.table` based time-series with a `nanotime` index
+## Creating a `data.table`-based time-series with a `nanotime` index
+
+Three operations are necessary to create a `data.table`-based
+time-series for use with the functions defined in this package:
+1. Create the time index, i.e. a vector of `nanotime`
+2. Create a `data.table` with the first column being the time index 
+3. The name of the first column with the time index must be specified
+   as a key
+
+For instance, this code creates a time-series of 10 rows spaced every
+hour with a data column `V1` containing random data:
+
+~~~ R
+library(data.table)
+t1  <- nanotime(1:10 * as.nanoduration("01:00:00"))
+dt1 <- data.table(index=t1, V1=runif(10))
+setkey(dt1, index)
+~~~
 
 
-### Alignment functions
+## Alignment functions
 
 Alignment is the process of matching one time series to another. All
 alignment functions in this package work in a similar way. For each
@@ -36,8 +54,10 @@ Additionally to the arguments `start` and `end`, two other arguments,
 booleans named `sopen` and `eopen` define if the start and end,
 respectively, of the interval are open or not.
 
+<img src="./inst/images/align_closest.svg">
 
-#### `align.idx`
+
+### `align.idx`
 
 This function takes two vectors of type `nanotime`. It aligns the
 first one onto the second one and returns the indices of the first
@@ -50,11 +70,9 @@ falls in the interval and that is closest to the point of alignment in
 the position of the vector `y`. If no point exists in that interval
 `NaN` is returned.
 
-![Alt text](./inst/images/align_closest.svg)
-<img src="./inst/images/align_closest.svg">
 
 
-#### `align`
+### `align`
 
 This function takes a `data.table` and aligns is onto `y`, a vector of
 `nanotime`. Like `align.idx`, it uses the arguments `start`, `end`,
@@ -72,8 +90,18 @@ must be a statistic that returns one row, but any number of
 columns. Common examples are means (e.g. using `colMeans`), counts,
 etc.
 
+~~~ R
+library(dtts); library(data.table)
+one_second  <- 1e9
+cols <- 3
+rows <- 100
+t1 <- nanotime(1:rows * one_second)
+dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
+t2 <- nanotime(1:10 * one_second * 10)
+align(dt1, t2, start=-10*one_second, func=function(x) colMeans(as.data.frame(x)))
+~~~
 
-#### `grid.align`
+### `grid.align`
 
 This function adds one more dimension to the function `align` in the
 sense that instead of taking a vector `y`, it constructs it as a grid
@@ -87,31 +115,14 @@ functions, the argument `tz` must be supplied so that the `nanoperiod`
 interval can be anchored in a specific timezone.
 
 
-## `frequency`
+### `frequency`
 
 Frequency is yet one abtraction higher and is basically `grid.align`
 with a default function which is the counting of the number of
 elements in each interval.
 
 
-The following function creates a time-series of 100 rows spaced every
-1 seconds. It then aligns this time series on a time vector that is
-spaced every 10 seconds and applies the column means to the
-observations that are being aligned.
-
-
-~~~ R
-library(dtts); library(data.table)
-one_second  <- 1e9
-cols <- 3
-rows <- 100
-t1 <- nanotime(1:rows * one_second)
-dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
-t2 <- nanotime(1:10 * one_second * 10)
-align(dt1, t2, start=-10*one_second, func=function(x) colMeans(as.data.frame(x)))
-~~~
-
-### Status
+## Status
 
 The package currently proposes only a set of alignment
 functions. "Moving" functions such as moving sum, moving average,
@@ -121,16 +132,16 @@ See the [issue tickets](https://github.com/eddelbuettel/dtts/issues)
 for an up to date list of potentially desirable, possibly planned, or
 at least discussed items.
 
-### Installation
+## Installation
 
 ```r
 remotes::install_github("eddelbuettel/dtts.utils")
 ```
 
-### Author
+## Author
 
 Dirk Eddelbuettel, Leonardo Silvestri
 
-### License
+## License
 
 GPL (>= 2)
