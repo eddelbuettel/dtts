@@ -27,7 +27,8 @@ align_idx_duration <- function(x,                         # time-series
         end <- as.nanoduration(0)
     }
     
-    .Call('_dtts_align_idx_duration', sort(x), sort(y), start, end, sopen, eopen)
+    #.Call('_dtts_align_idx_duration', sort(x), sort(y), start, end, sopen, eopen)
+    .align_idx_duration_cpp(sort(x), sort(y), start, end, sopen, eopen)
 }
 
 ##' Get the index of the alignment of one vector onto another
@@ -124,7 +125,8 @@ align_idx_period <- function(x,                         # time-series
         stop ("'tz' must be a 'character'")
     }
       
-    .Call('_dtts_align_idx_period', sort(x), sort(y), start, end, sopen, eopen, tz)
+    #.Call('_dtts_align_idx_period', sort(x), sort(y), start, end, sopen, eopen, tz)
+    .align_idx_period_cpp(sort(x), sort(y), start, end, sopen, eopen, tz)
 }
 
 
@@ -149,7 +151,7 @@ align_duration <- function(x,                         # time-series
                            end=as.nanoduration(0), 
                            sopen = FALSE,
                            eopen = TRUE,
-                           func=NULL)
+                           func = NULL)
 {
     if (missing(start)) {
         start <- as.nanoduration(0)
@@ -174,22 +176,22 @@ align_duration <- function(x,                         # time-series
             stop ("'func' must be a function")
         }
         res <- data.table(index=y,
-                          do.call(rbind, .Call('_dtts_align_duration',
-                                               x[[1]],        # the index of the data.table
-                                               sort(y),       # nanotime vector to align on
-                                               x,             # data.table data
-                                               start,
-                                               end,
-                                               sopen,
-                                               eopen,
-                                               func)))
+                          do.call(rbind,
+                                  .align_duration_cpp(x[[1]],        # the index of the data.table
+                                                      sort(y),       # nanotime vector to align on
+                                                      x,             # data.table data
+                                                      start,
+                                                      end,
+                                                      sopen,
+                                                      eopen,
+                                                      func)))
         setkeyv(res, key(x))
         res
     }
     else {
         ## if no function is supplied, make closest alignment:
         sorted_y <- sort(y)
-        res <- x[.Call('_dtts_align_idx_duration', x[[1]], sorted_y, start, end, sopen, eopen)]
+        res <- x[align_idx_duration(x[[1]], sorted_y, start, end, sopen, eopen)]
         res[[1]] <- sorted_y
         res
     }
@@ -294,23 +296,23 @@ align_period <- function(x,                           # time-series
             stop ("'func' must be a function")
         }
         res <- data.table(index=y,
-                          do.call(rbind, .Call('_dtts_align_period',
-                                               x[[1]],        # the index of the data.table
-                                               sort(y),       # nanotime vector to align on
-                                               x,             # data.table data
-                                               start,
-                                               end,
-                                               sopen,
-                                               eopen,
-                                               func,
-                                               tz)))
+                          do.call(rbind,
+                                  .align_period_cpp(x[[1]],        # the index of the data.table
+                                                    sort(y),       # nanotime vector to align on
+                                                    x,             # data.table data
+                                                    start,
+                                                    end,
+                                                    sopen,
+                                                    eopen,
+                                                    func,
+                                                    tz)))
         setkeyv(res, key(x))
         res
     }
     else {
         ## if no function is supplied, make closest alignment:
         sorted_y <- sort(y)
-        res <- x[.Call('_dtts_align_idx_period', x[[1]], sorted_y, start, end, sopen, eopen, tz)]
+        res <- x[align_idx_period(x[[1]], sorted_y, start, end, sopen, eopen, tz)]
         res[[1]] <- sorted_y
         res
     }

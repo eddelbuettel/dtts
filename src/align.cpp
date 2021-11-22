@@ -332,7 +332,7 @@ Rcpp::List align_func_period(const nanotime::dtime* x,
 }
 
 
-// [[Rcpp::export]]
+// [[Rcpp::export(.align_duration_cpp)]]
 Rcpp::List align_duration(const Rcpp::NumericVector& x,         // nanotime vector
                           const Rcpp::NumericVector& y,         // nanotime vector
                           const Rcpp::List xdata,               // DT
@@ -362,7 +362,7 @@ Rcpp::List align_duration(const Rcpp::NumericVector& x,         // nanotime vect
 }
 
 
-// [[Rcpp::export]]
+// [[Rcpp::export(.align_period_cpp)]]
 Rcpp::List align_period(const Rcpp::NumericVector& x,         // nanotime vector
                         const Rcpp::NumericVector& y,         // nanotime vector
                         const Rcpp::List xdata,               // DT
@@ -394,7 +394,7 @@ Rcpp::List align_period(const Rcpp::NumericVector& x,         // nanotime vector
 }
 
 
-// [[Rcpp::export]]
+// [[Rcpp::export(.align_idx_duration_cpp)]]
 Rcpp::NumericVector align_idx_duration(const Rcpp::NumericVector& x,     // nanotime vector
                                        const Rcpp::NumericVector& y,     // nanotime vector
                                        const Rcpp::NumericVector& start, // duration
@@ -420,7 +420,7 @@ Rcpp::NumericVector align_idx_duration(const Rcpp::NumericVector& x,     // nano
 }
 
 
-// [[Rcpp::export]]
+// [[Rcpp::export(.align_idx_period_cpp)]]
 Rcpp::NumericVector align_idx_period(const Rcpp::NumericVector& x,     // nanotime vector
                                      const Rcpp::NumericVector& y,     // nanotime vector
                                      const Rcpp::ComplexVector& start, // period
