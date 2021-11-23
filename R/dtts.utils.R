@@ -341,7 +341,6 @@ grid_align_duration <- function(x,                           # time-series
                                 ival_sopen=FALSE,            # the interval start open 
                                 ival_eopen=TRUE)             # the interval end open
 {
-    print("grid_align_duration")
     grid <- seq(start, end, by=by)
     if (tail(grid,1) < end) {
         grid <- c(grid, tail(grid,1) + by)
@@ -362,7 +361,6 @@ grid_align_period <- function(x,                              # time-series
                               ival_eopen=TRUE,                # the interval end open
                               tz)                             # time zone when using 'period'
 {
-    print("grid_align_period")
     grid <- seq(start, end, by=by, tz=tz)
     if (tail(grid,1) < end) {
         grid  <- c(grid, plus(tail(grid,1), by, tz))

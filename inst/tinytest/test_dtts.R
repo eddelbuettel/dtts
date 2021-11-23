@@ -46,7 +46,15 @@ expect_equal(align.idx(t1, t2, start=-one_second_period, tz="America/New_York"),
 t1 <- nanotime(1:100 * one_second_duration * 2 + one_second_duration)
 t2 <- nanotime(1:10 * one_second_duration * 10)
 expect_equal(align.idx(t1, t2, end=one_second_period, eopen=FALSE, tz="America/New_York"), seq(5, 50, 5))
-#}
+                                        #}
+## incorrect parameter types (nanoduration):
+expect_error(align.idx(t1, t2, sopen="open"), "must be a 'logical'")
+expect_error(align.idx(t1, t2, eopen="open"), "must be a 'logical'")
+## incorrect parameter types (nanoperiod):
+expect_error(align.idx(t1, t2, end=one_second_period, sopen="open"), "must be a 'logical'")
+expect_error(align.idx(t1, t2, end=one_second_period, eopen="open"), "must be a 'logical'")
+expect_error(align.idx(t1, t2, end=one_second_period, tz=3), "'tz' must be a 'character'")
+
 
 ## align
 ## -----
@@ -122,6 +130,17 @@ t2 <- seq(from=as.nanotime("2021-11-06T00:00:00 America/New_York"),
 ## 50:
 expect_equal(align(dt1, t2, start=-as.nanoperiod("1d"), sopen=TRUE, eopen=FALSE, tz="America/New_York"), dt1[c(1, 25, 50, 74)])
 #}
+
+## incorrect parameter types (nanoduration):
+expect_error(align(dt1, t2, sopen="open"), "must be a 'logical'")
+expect_error(align(dt1, t2, eopen="open"), "must be a 'logical'")
+expect_error(align(dt1, t2, func="a string instead of a function"), "must be a function")
+## incorrect parameter types (nanoperiod):
+expect_error(align(dt1, t2, start=-as.nanoperiod("1d"), sopen="open"), "must be a 'logical'")
+expect_error(align(dt1, t2, start=-as.nanoperiod("1d"), eopen="open"), "must be a 'logical'")
+expect_error(align(dt1, t2, start=-as.nanoperiod("1d"), func="a string instead of a function", tz="America/New_York"), "must be a function")
+expect_error(align(dt1, t2, start=-as.nanoperiod("1d"), tz=complex(1)), "'tz' must be a 'character'")
+
 
 ## align func
 ## ----------
@@ -294,34 +313,33 @@ exp <- dt1[1:10 * 10]
 exp[,2] <- exp[,2] ^ 2
 expect_error(align(dt1, t2, end=as.nanoduration(1), func=square_col1))
 #}
-## LLL also check that if dt1 is not ordered on its first column then we will throw an error
 
-if (FALSE) { # FIXME
+
 #test_frequency_duration <- function() {
 cols <- 3
 rows <- 100
 t1 <- nanotime(1:rows * one_second_duration)
 dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
 setkey(dt1, index)
-res <- frequency(dt1, by=30*one_second_duration)
-exp <- tail(data.table(index=nanotime(seq(dt1$index[1], by=30*one_second_duration, length.out=4)), V1=30), -1)
+res <- frequency(dt1, by=as.nanoduration("00:00:30"))
+exp <- tail(data.table(index=seq(dt1$index[1], by=30*one_second_duration, length.out=4), V1=30), -1)
 exp <- rbind(exp, data.table(index=tail(exp$index,1)+30*one_second_duration, V1=10))
 setkey(exp, index)
 expect_equal(res, exp)
 #}
 
-#test_frequency_start_end_duration <- function() {
+## #test_frequency_start_end_duration <- function() {
 cols <- 3
 rows <- 100
 t1 <- nanotime(0:(rows-1) * one_second_duration)
 dt1 <- data.table(index=t1, matrix(0:(rows*cols-1), rows, cols))
 setkey(dt1, index)
-res <- frequency(dt1, by=30*one_second_duration, start=nanotime(0), end=nanotime(0) + 2*30*one_second_duration)
-exp <- data.table(index=nanotime(seq(dt1$index[1], by=30*one_second_duration, length.out=3)), V1=c(0, 30, 30))
+res <- frequency(dt1, by=as.nanoduration("00:00:30"), start=nanotime(0), end=nanotime(0) + 2*30*one_second_duration)
+exp <- data.table(index=seq(dt1$index[1], by=30*one_second_duration, length.out=3), V1=c(0, 30, 30))
 setkey(exp, index)
 expect_equal(res, exp)
-#}
-}
+## #}
+
 
 #test_frequency_period <- function() {
 t1 <- seq(nanotime("2021-02-01 00:00:00 America/New_York"), nanotime("2021-04-01 00:00:00 America/New_York"),
@@ -338,6 +356,10 @@ setkey(exp, index)
 expect_equal(res, exp)
 #}
 
+## wrong type for 'by
+expect_error(frequency(dt1, by=3), "argument 'by' must be either 'nanoduration' or 'nanotime'")
+
+    
 if (FALSE) {
     ## don't do this; must appear in vignette!
 
