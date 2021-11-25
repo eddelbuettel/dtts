@@ -153,6 +153,12 @@ align_duration <- function(x,                         # time-series
                            eopen = TRUE,
                            func = NULL)
 {
+    if (missing(start) && missing(end) && missing(sopen) && missing(eopen)) {
+        eopen = FALSE               # otherwise no interval is
+                                    # defined and the result is
+                                    # all NA, which is likely not
+                                    # what the user intended
+    }
     if (missing(start)) {
         start <- as.nanoduration(0)
     }
@@ -160,10 +166,10 @@ align_duration <- function(x,                         # time-series
         end <- as.nanoduration(0)
     }
     if (!inherits(x[[1]], "nanotime")) {
-        stop("first column of `data.table` must be of type `nanotime`")
+        stop("first column of 'data.table' must be of type 'nanotime'")
     }
     if (is.null(key(x)) || names(x)[1] != key(x)[1]) {
-        stop("first column of `data.table` must be the first key")
+        stop("first column of 'data.table' must be the first key")
     }
     if (!is.logical(sopen)) {
         stop("'sopen' must be a 'logical'")
@@ -197,7 +203,6 @@ align_duration <- function(x,                         # time-series
     }
 }
 
-align_duration_both_missing <- function(x, y) align_duration(x, y)
 
 ##' Align a \code{data.table} onto a \code{nanotime} vector
 ##'
@@ -277,7 +282,7 @@ align_period <- function(x,                           # time-series
         end <- as.nanoperiod(0)
     }
     if (!inherits(x[[1]], "nanotime")) {
-        stop("first column of `data.table` must be of type `nanotime`")
+        stop("first column of 'data.table' must be of type 'nanotime'")
     }
     if (!is.logical(sopen)) {
         stop("'sopen' must be a 'logical'")
@@ -289,7 +294,7 @@ align_period <- function(x,                           # time-series
         stop ("'tz' must be a 'character'")
     }
     if (is.null(key(x)) || names(x)[1] != key(x)[1]) {
-        stop("first column of `data.table` must be the first key")
+        stop("first column of 'data.table' must be the first key")
     }
     if (!is.null(func)) {
         if (!is.function(func)) {
@@ -333,7 +338,7 @@ setGeneric("grid.align", function(x, by, ...) standardGeneric("grid.align"))
 
 grid_align_duration <- function(x,                           # time-series
                                 by,                          # the grid size
-                                func,                        # function to apply on the subgroups
+                                func=NULL,                   # function to apply on the subgroups
                                 start=x[[1]][1] + by,        # start of the grid
                                 end=tail(x[[1]], 1),         # end of the grid
                                 ival_start=-by,              # the interval start
@@ -346,13 +351,20 @@ grid_align_duration <- function(x,                           # time-series
         grid <- c(grid, tail(grid,1) + by)
     }
     
+    if (missing(ival_sopen) & missing(ival_eopen) & is.null(func)) {
+        ## the intention is a closest align, so make sure the interval
+        ## is closed at the end, as equality is considered the
+        ## closest:
+        ival_eopen <- FALSE
+    }
+
     align(x, grid, ival_start, ival_end, ival_sopen, ival_eopen, func)
 }
 
 
 grid_align_period <- function(x,                              # time-series
                               by,                             # the grid size
-                              func,                           # function to apply on the subgroups
+                              func=NULL,                      # function to apply on the subgroups
                               start=plus(x[[1]][1], by, tz),  # start of the grid
                               end=tail(x[[1]], 1),            # end of the grid
                               ival_start=-by,                 # the interval start
@@ -364,6 +376,13 @@ grid_align_period <- function(x,                              # time-series
     grid <- seq(start, end, by=by, tz=tz)
     if (tail(grid,1) < end) {
         grid  <- c(grid, plus(tail(grid,1), by, tz))
+    }
+
+    if (missing(ival_sopen) & missing(ival_eopen) & is.null(func)) {
+        ## the intention is a closest align, so make sure the interval
+        ## is closed at the end, as equality is considered the
+        ## closest:
+        ival_eopen <- FALSE
     }
 
     align(x, grid, ival_start, ival_end, ival_sopen, ival_eopen, tz, func)

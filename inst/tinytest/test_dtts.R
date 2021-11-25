@@ -47,6 +47,11 @@ t1 <- nanotime(1:100 * one_second_duration * 2 + one_second_duration)
 t2 <- nanotime(1:10 * one_second_duration * 10)
 expect_equal(align.idx(t1, t2, end=one_second_period, eopen=FALSE, tz="America/New_York"), seq(5, 50, 5))
                                         #}
+## all default arguments:
+t1 <- nanotime(1:30 * one_second_duration)
+t2 <- nanotime(1:3 * one_second_duration * 10)
+expect_equal(align.idx(t1, t2), c(10,20,30))
+
 ## incorrect parameter types (nanoduration):
 expect_error(align.idx(t1, t2, sopen="open"), "must be a 'logical'")
 expect_error(align.idx(t1, t2, eopen="open"), "must be a 'logical'")
@@ -58,7 +63,15 @@ expect_error(align.idx(t1, t2, end=one_second_period, tz=3), "'tz' must be a 'ch
 
 ## align
 ## -----
-#test_align_none.equal <- function() {
+
+## with all default params:
+rows <- 10
+t1 <- seq(as.nanotime(0), by=one_second_duration, length.out=rows)
+dt1 <- data.table(index=t1, v1=1:rows)
+setkey(dt1, index)
+t2 <- seq(as.nanotime(0), by=2*one_second_duration, length.out=rows/2)
+expect_equal(align(dt1, t2), dt1[seq(1, rows, by=2)])
+
 ## do the alignment with no interval, so require equality for alignment:
 cols <- 3
 rows <- 100
@@ -140,6 +153,17 @@ expect_error(align(dt1, t2, start=-as.nanoperiod("1d"), sopen="open"), "must be 
 expect_error(align(dt1, t2, start=-as.nanoperiod("1d"), eopen="open"), "must be a 'logical'")
 expect_error(align(dt1, t2, start=-as.nanoperiod("1d"), func="a string instead of a function", tz="America/New_York"), "must be a function")
 expect_error(align(dt1, t2, start=-as.nanoperiod("1d"), tz=complex(1)), "'tz' must be a 'character'")
+expect_error(align(dt1[,2], t2, start=-as.nanoperiod("1d")), "first column of 'data.table' must be of type 'nanotime'")
+
+## missing key (nanoduration):
+t1 <- as.nanotime("2021-11-06T00:00:00 America/New_York")
+dt1 <- data.table(index=t1, v1=0)
+expect_error(align(dt1, t1), "first column of 'data.table' must be the first key")
+
+## missing key (nanoperiod):
+t1 <- as.nanotime("2021-11-06T00:00:00 America/New_York")
+dt1 <- data.table(index=t1, v1=0)
+expect_error(align(dt1, t1, start=as.nanoperiod(0), tz="America/New_York"), "first column of 'data.table' must be the first key")
 
 
 ## align func
@@ -315,6 +339,49 @@ expect_error(align(dt1, t2, end=as.nanoduration(1), func=square_col1))
 #}
 
 
+## grid.align:
+## ----------
+
+## nanoduration
+t1 <- seq(from=as.nanotime("2021-11-06T00:00:00 America/New_York"),
+          to=as.nanotime("2021-11-09T00:00:00 America/New_York"),
+          by=as.nanoduration("01:00:00"))
+dt1 <- data.table(index=t1, V1=0:(length(t1)-1))
+setkey(dt1, index)
+exp <- data.table(index=as.nanotime(c("2021-11-07T00:00:00-04:00", "2021-11-07T23:00:00-05:00",
+                                      "2021-11-08T23:00:00-05:00", "2021-11-09T23:00:00-05:00")),
+                  V1=c(24, 48, 72, 73))
+setkey(exp, index)
+expect_equal(grid.align(dt1, by=as.nanoduration("24:00:00")), exp)
+
+## nanoperiod
+t1 <- seq(from=as.nanotime("2021-11-06T00:00:00 America/New_York"),
+          to=as.nanotime("2021-11-09T00:00:00 America/New_York"),
+          by=as.nanoduration("01:00:00"))
+dt1 <- data.table(index=t1, V1=0:(length(t1)-1))
+setkey(dt1, index)
+# format(grid.align(dt1, by=as.nanoperiod("1d"), tz="America/New_York")$index, tz="America/New_York")
+exp <- data.table(index=as.nanotime(c("2021-11-07T00:00:00-04:00", "2021-11-08T00:00:00-05:00",
+                                      "2021-11-09T00:00:00-05:00")),
+                  V1=c(24, 49, 73))
+setkey(exp, index)
+expect_equal(grid.align(dt1, by=as.nanoperiod("1d"), tz="America/New_York"), exp)
+
+## this test to make the grid longer than t1:
+t1 <- seq(from=as.nanotime("2021-11-06T00:00:00 America/New_York"),
+          to=as.nanotime("2021-11-08T23:00:00 America/New_York"),
+          by=as.nanoduration("01:00:00"))
+dt1 <- data.table(index=t1, V1=0:(length(t1)-1))
+setkey(dt1, index)
+exp <- data.table(index=as.nanotime(c("2021-11-07T00:00:00-04:00", "2021-11-08T00:00:00-05:00",
+                                      "2021-11-09T00:00:00-05:00")),
+                  V1=c(24, 49, 72))
+setkey(exp, index)
+expect_equal(grid.align(dt1, by=as.nanoperiod("1d"), tz="America/New_York"), exp)
+
+                                                                  
+## frequency:
+## ---------
 #test_frequency_duration <- function() {
 cols <- 3
 rows <- 100
