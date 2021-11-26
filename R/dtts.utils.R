@@ -27,7 +27,6 @@ align_idx_duration <- function(x,                         # time-series
         end <- as.nanoduration(0)
     }
     
-    #.Call('_dtts_align_idx_duration', sort(x), sort(y), start, end, sopen, eopen)
     .align_idx_duration_cpp(sort(x), sort(y), start, end, sopen, eopen)
 }
 
@@ -125,7 +124,6 @@ align_idx_period <- function(x,                         # time-series
         stop ("'tz' must be a 'character'")
     }
       
-    #.Call('_dtts_align_idx_period', sort(x), sort(y), start, end, sopen, eopen, tz)
     .align_idx_period_cpp(sort(x), sort(y), start, end, sopen, eopen, tz)
 }
 
@@ -153,6 +151,12 @@ align_duration <- function(x,                         # time-series
                            eopen = TRUE,
                            func = NULL)
 {
+    if (missing(start) && missing(end) && missing(sopen) && missing(eopen)) {
+        eopen = FALSE               # otherwise no interval is
+                                    # defined and the result is
+                                    # all NA, which is likely not
+                                    # what the user intended
+    }
     if (missing(start)) {
         start <- as.nanoduration(0)
     }
@@ -160,10 +164,10 @@ align_duration <- function(x,                         # time-series
         end <- as.nanoduration(0)
     }
     if (!inherits(x[[1]], "nanotime")) {
-        stop("first column of `data.table` must be of type `nanotime`")
+        stop("first column of 'data.table' must be of type 'nanotime'")
     }
     if (is.null(key(x)) || names(x)[1] != key(x)[1]) {
-        stop("first column of `data.table` must be the first key")
+        stop("first column of 'data.table' must be the first key")
     }
     if (!is.logical(sopen)) {
         stop("'sopen' must be a 'logical'")
@@ -197,7 +201,6 @@ align_duration <- function(x,                         # time-series
     }
 }
 
-align_duration_both_missing <- function(x, y) align_duration(x, y)
 
 ##' Align a \code{data.table} onto a \code{nanotime} vector
 ##'
@@ -277,7 +280,7 @@ align_period <- function(x,                           # time-series
         end <- as.nanoperiod(0)
     }
     if (!inherits(x[[1]], "nanotime")) {
-        stop("first column of `data.table` must be of type `nanotime`")
+        stop("first column of 'data.table' must be of type 'nanotime'")
     }
     if (!is.logical(sopen)) {
         stop("'sopen' must be a 'logical'")
@@ -289,7 +292,7 @@ align_period <- function(x,                           # time-series
         stop ("'tz' must be a 'character'")
     }
     if (is.null(key(x)) || names(x)[1] != key(x)[1]) {
-        stop("first column of `data.table` must be the first key")
+        stop("first column of 'data.table' must be the first key")
     }
     if (!is.null(func)) {
         if (!is.function(func)) {
@@ -333,7 +336,7 @@ setGeneric("grid.align", function(x, by, ...) standardGeneric("grid.align"))
 
 grid_align_duration <- function(x,                           # time-series
                                 by,                          # the grid size
-                                func,                        # function to apply on the subgroups
+                                func=NULL,                   # function to apply on the subgroups
                                 start=x[[1]][1] + by,        # start of the grid
                                 end=tail(x[[1]], 1),         # end of the grid
                                 ival_start=-by,              # the interval start
@@ -346,13 +349,20 @@ grid_align_duration <- function(x,                           # time-series
         grid <- c(grid, tail(grid,1) + by)
     }
     
+    if (missing(ival_sopen) & missing(ival_eopen) & is.null(func)) {
+        ## the intention is a closest align, so make sure the interval
+        ## is closed at the end, as equality is considered the
+        ## closest:
+        ival_eopen <- FALSE
+    }
+
     align(x, grid, ival_start, ival_end, ival_sopen, ival_eopen, func)
 }
 
 
 grid_align_period <- function(x,                              # time-series
                               by,                             # the grid size
-                              func,                           # function to apply on the subgroups
+                              func=NULL,                      # function to apply on the subgroups
                               start=plus(x[[1]][1], by, tz),  # start of the grid
                               end=tail(x[[1]], 1),            # end of the grid
                               ival_start=-by,                 # the interval start
@@ -364,6 +374,13 @@ grid_align_period <- function(x,                              # time-series
     grid <- seq(start, end, by=by, tz=tz)
     if (tail(grid,1) < end) {
         grid  <- c(grid, plus(tail(grid,1), by, tz))
+    }
+
+    if (missing(ival_sopen) & missing(ival_eopen) & is.null(func)) {
+        ## the intention is a closest align, so make sure the interval
+        ## is closed at the end, as equality is considered the
+        ## closest:
+        ival_eopen <- FALSE
     }
 
     align(x, grid, ival_start, ival_end, ival_sopen, ival_eopen, tz, func)
@@ -423,82 +440,3 @@ grid_align_period <- function(x,                              # time-series
 setMethod("grid.align", signature("data.table", "nanoduration"), grid_align_duration)
 ##' @rdname grid.align
 setMethod("grid.align", signature("data.table", "nanoperiod"),   grid_align_period)
- 
-
-##' Return the number of observations per interval
-##'
-##' \code{frequency} returns the number of observations in
-##' \code{data.table} \code{x} when subdivided in the specified
-##' interval
-##'
-##' The interval specified in \code{by} is used to subdivide
-##' \code{x}. The number of observations in \code{x} is then counted
-##' for each interval, and the results are assigned to the end of each
-##' interval.
-##'
-##' @param x the \code{data.table} time-series for which to calculate
-##'     the frequency
-##' @param by interval specified as a \code{nanoduration} or
-##'     \code{nanoperiod}.
-##' @param start scalar \code{nanotime} defining the start of the
-##'     grid; by default the first element of \code{x} is taken.
-##' @param end scalar \code{nanotime} defining the end of the grid; by
-##'     default the last element of \code{x} is taken.
-##' @param tz scalar of type character. Only used when the type of
-##'     \code{by} and \code{end} is \code{nanoperiod}. It defines the
-##'     time zone for the definition of the interval.
-##' @param ival_start scalar of type \code{nanoduration} or
-##'     \code{nanoperiod}; \code{ival_start} is added to each element
-##'     of the grid and it then defines the starting point of the
-##'     interval under consideration for the alignment onto that
-##'     element. This defaults to -\code{by} and most likely does not
-##'     need to be overriden.
-##' @param ival_end scalar of type \code{nanoduration} or
-##'     \code{nanoperiod}; \code{ival_end} is added to each element of
-##'     the grid and it then defines the ending point of the interval
-##'     under consideration for the alignment onto that element. This
-##'     defaults to 0 and most likely does not need to be overriden.
-##' @param ival_sopen boolean scalar that indicates if the start of
-##'     the interval is open or closed. Defaults to FALSE.
-##' @param ival_eopen boolean scalar that indicates if the end of the
-##'     interval is open or closed. Defaults to TRUE.
-##' @return a \code{data.table} time-series with the number of
-##'     observations in \code{x} that fall withing the intervals
-##'     defined by the grid interval defined by \code{by}.
-##' 
-##' @examples
-##' \dontrun{
-##' one_second <- as.nanoduration("00:00:01")
-##' one_minute <- 60 * one_second
-##' x <- data.table(index=nanotime(cumsum(sin(seq(0.001, pi, 0.001)) * one_second)), 1)
-##' frequency(x, one_minute)
-##' }
-setMethod("frequency",
-          signature("data.table"),
-          function(x, by, start, end, tz, ival_start=-by, ival_end, ival_sopen=FALSE, ival_eopen=TRUE) {
-              
-              if (missing(end)) {
-                  end = tail(x[[1]], 1)
-              }
-              if (inherits(by, "nanoduration")) {
-                  if (missing(start)) {
-                      start = x[[1]][1] + by
-                  }
-                  if (missing(ival_end)) {
-                      ival_end = as.nanoduration(0)
-                  }
-                  grid.align(x, by, function(y) if (is.null(y)) 0 else nrow(y), start, end, ival_start, ival_end, ival_sopen, ival_eopen)
-              }
-              else if (inherits(by, "nanoperiod")) {
-                  if (missing(start)) {
-                      start = plus(x[[1]][1], by, tz)
-                  }
-                  if (missing(ival_end)) {
-                      ival_end = nanoperiod(0)
-                  }
-                  grid.align(x, by, function(y) if (is.null(y)) 0 else nrow(y), start, end, ival_start, ival_end, ival_sopen, ival_eopen, tz)
-              }
-              else {
-                  stop("argument 'by' must be either 'nanoduration' or 'nanotime'")
-              }
-          })

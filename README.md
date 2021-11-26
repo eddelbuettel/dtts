@@ -209,18 +209,13 @@ Which produces:
 10: 1970-01-01T00:01:40+00:00 94.5
 ~~~
 
-#### `frequency`
+#### Frequency
 
-Frequency is yet one abtraction higher and is basically `grid.align`
-with a default function that counts the number of elements in each
-interval. `frequency` is in fact equivalent to a call of `grid.align`
-with the function `func` being:
+Using `grid.align` and `nrow` it is possible to get the frequency of a
+time-series, i.e. to count the number of elements in each interval of
+a grid.
 
-~~~ R
-function(y) if (is.null(y)) 0 else nrow(y)
-~~~
-
-We take the same example as above and we see that the result is the
+Taking the same example as above and we see that the result is the
 count of elements of `dt1` that are in each interval:
 
 ~~~ R
@@ -230,7 +225,7 @@ t1 <- seq(as.nanotime("1970-01-01T00:00:00+00:00"), by=as.nanoduration("00:00:01
 dt1 <- data.table(index=t1, V1=0:99)
 setkey(dt1, index)
 
-frequency(dt1, as.nanoduration("00:00:10"))
+grid.align(dt1, as.nanoduration("00:00:10"), func=nrow)
 ~~~
 
 Which produces:
