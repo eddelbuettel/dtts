@@ -1,2 +1,9 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^\.travis.yml$
+^tests/.*\.Rout.save
+^\.codecov\.yml$
+^local
+^LICENSE$
+.*\.tar\.gz
+^\.github
