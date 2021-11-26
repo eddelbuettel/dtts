@@ -11,7 +11,7 @@ grid.align(x, by, ...)
 \S4method{grid.align}{data.table,nanoduration}(
   x,
   by,
-  func,
+  func = NULL,
   start = x[[1]][1] + by,
   end = tail(x[[1]], 1),
   ival_start = -by,
@@ -23,7 +23,7 @@ grid.align(x, by, ...)
 \S4method{grid.align}{data.table,nanoperiod}(
   x,
   by,
-  func,
+  func = NULL,
   start = plus(x[[1]][1], by, tz),
   end = tail(x[[1]], 1),
   ival_start = -by,

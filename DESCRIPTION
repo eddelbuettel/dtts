@@ -5,7 +5,8 @@ Version: 0.0.4
 Date: 2021-11-21
 Author: Dirk Eddelbuettel and Leonardo Silvestri
 Maintainer: Dirk Eddelbuettel <edd@debian.org>
-Description: 'nanotime' and 'data.table'-based time series
+Description: This packages provides support for 'nanotime' and 'data.table'-based
+ time series.
 License: GPL (>= 2)
 Depends: nanotime
 Imports: data.table, methods, bit64, Rcpp (>= 0.11.5), RcppCCTZ (>= 0.2.0)
