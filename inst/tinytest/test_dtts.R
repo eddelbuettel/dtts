@@ -480,7 +480,66 @@ setkey(exp, index)
 expect_equal(res, exp)
 #}
 
-    
+
+## tests for when there are duplicate times in the vector to align onto:
+## --------------------------------------------------------------------
+
+## align.idx, random duplicates
+t1 <- nanotime(1:100 * one_second_duration)
+time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
+t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
+expect_equal(align.idx(t1, t2, sopen=FALSE, eopen=FALSE), time_vec * 10)
+
+## check the same but with duplicate on open start boundary
+
+## check the same but with duplicate on closed start boundary
+
+## check the same but with duplicate on open start boundary
+
+## check the same but with duplicate on closed end boundary
+
+
+## align
+
+
+
+## tests for unsorted calls to align.idx:
+## -------------------------------------
+## both unsorted:
+x <- as.nanotime(10:1)
+y <- as.nanotime(4:2)
+expect_error(align.idx(x, y), "'y' must be sorted in ascending order")
+## x only unsorted:
+x <- as.nanotime(10:1)
+y <- as.nanotime(2:4)
+expect_error(align.idx(x, y), "'x' must be sorted in ascending order")
+## y only unsorted:
+x <- as.nanotime(1:10)
+y <- as.nanotime(4:2)
+expect_error(align.idx(x, y), "'y' must be sorted in ascending order")
+## bypass x sorted:
+x <- as.nanotime(1:10)
+y <- as.nanotime(2:4)
+expect_equal(align.idx(x, y, bypass_x_check=TRUE), c(2:4))
+## bypass x sorted, x descending:
+x <- as.nanotime(10:1)
+y <- as.nanotime(2:4)
+expect_equal(align.idx(x, y, bypass_x_check=TRUE), rep(NA_real_, 3))   # incorrect align as x is not sorted
+## bypass y sorted, y descending:
+x <- as.nanotime(1:10)
+y <- as.nanotime(4:1)
+expect_equal(align.idx(x, y, bypass_y_check=TRUE), c(4, rep(NA_real_, 3)))   # incorrect align as x is not sorted
+## x only unsorted, period:
+x <- as.nanotime(10:1)
+y <- as.nanotime(2:4)
+expect_error(align.idx(x, y, start=-as.nanoperiod("00:00:01"), tz="UTC"), "'x' must be sorted in ascending order")
+## y only unsorted, period:
+x <- as.nanotime(1:10)
+y <- as.nanotime(4:2)
+expect_error(align.idx(x, y, start=-as.nanoperiod("00:00:01"), tz="UTC"), "'y' must be sorted in ascending order")
+
+
+
 if (FALSE) {
     ## don't do this; must appear in vignette!
 

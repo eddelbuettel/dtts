@@ -13,13 +13,49 @@
 \usage{
 align.idx(x, y, start, end, ...)
 
-\S4method{align.idx}{nanotime,nanotime,nanoduration,nanoduration}(x, y, start, end, sopen = FALSE, eopen = TRUE)
+\S4method{align.idx}{nanotime,nanotime,nanoduration,nanoduration}(
+  x,
+  y,
+  start,
+  end,
+  sopen = FALSE,
+  eopen = TRUE,
+  bypass_x_check = FALSE,
+  bypass_y_check = FALSE
+)
 
-\S4method{align.idx}{nanotime,nanotime,missing,missing}(x, y, start, end, sopen = FALSE, eopen = TRUE)
+\S4method{align.idx}{nanotime,nanotime,missing,missing}(
+  x,
+  y,
+  start,
+  end,
+  sopen = FALSE,
+  eopen = TRUE,
+  bypass_x_check = FALSE,
+  bypass_y_check = FALSE
+)
 
-\S4method{align.idx}{nanotime,nanotime,missing,nanoduration}(x, y, start, end, sopen = FALSE, eopen = TRUE)
+\S4method{align.idx}{nanotime,nanotime,missing,nanoduration}(
+  x,
+  y,
+  start,
+  end,
+  sopen = FALSE,
+  eopen = TRUE,
+  bypass_x_check = FALSE,
+  bypass_y_check = FALSE
+)
 
-\S4method{align.idx}{nanotime,nanotime,nanoduration,missing}(x, y, start, end, sopen = FALSE, eopen = TRUE)
+\S4method{align.idx}{nanotime,nanotime,nanoduration,missing}(
+  x,
+  y,
+  start,
+  end,
+  sopen = FALSE,
+  eopen = TRUE,
+  bypass_x_check = FALSE,
+  bypass_y_check = FALSE
+)
 
 \S4method{align.idx}{nanotime,nanotime,nanoperiod,nanoperiod}(
   x,
@@ -28,7 +64,9 @@ align.idx(x, y, start, end, ...)
   end = as.nanoperiod(0),
   sopen = FALSE,
   eopen = TRUE,
-  tz
+  tz,
+  bypass_x_check = FALSE,
+  bypass_y_check = FALSE
 )
 
 \S4method{align.idx}{nanotime,nanotime,missing,nanoperiod}(
@@ -38,7 +76,9 @@ align.idx(x, y, start, end, ...)
   end = as.nanoperiod(0),
   sopen = FALSE,
   eopen = TRUE,
-  tz
+  tz,
+  bypass_x_check = FALSE,
+  bypass_y_check = FALSE
 )
 
 \S4method{align.idx}{nanotime,nanotime,nanoperiod,missing}(
@@ -48,7 +88,9 @@ align.idx(x, y, start, end, ...)
   end = as.nanoperiod(0),
   sopen = FALSE,
   eopen = TRUE,
-  tz
+  tz,
+  bypass_x_check = FALSE,
+  bypass_y_check = FALSE
 )
 }
 \arguments{
@@ -77,6 +119,14 @@ closed. Defaults to FALSE.}
 \item{eopen}{boolean scalar or vector of same lengths as \code{y}
 that indicates if the end of the interval is open or
 closed. Defaults to TRUE.}
+
+\item{bypass_x_check}{logical indicating if the sorting of
+\code{x} should be bypassed. This can provide a marginal
+speedup, but should be used carefully.}
+
+\item{bypass_y_check}{logical indicating if the sorting of
+\code{y} should be bypassed. This can provide a marginal
+speedup, but should be used carefully.}
 
 \item{tz}{scalar or vector of same length as \code{y} of type
 character. Only used when the type of \code{start} and
