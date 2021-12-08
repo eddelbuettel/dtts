@@ -242,23 +242,20 @@ expect_equal(align(dt1, t2, end=as.nanoduration(1), func=square_col1), exp)
 ## test using a non-scalar 'start' and 'end' parameters
 cols <- 3
 rows <- 100
-t1 <- nanotime(0:(rows-1) * one_second_duration)
+t1 <- nanotime(1:rows * one_second_duration)
 dt1 <- data.table(index=t1, matrix(0:(rows*cols-1), rows, cols))
 setkey(dt1, index)
 t2 <- nanotime(1:9 * one_second_duration * 10)
-
 exp <- data.table(index=t2, V1=seq(9.5, 89.5, by=10))
 exp[, V2 := V1 + 100]
 exp[, V3 := V2 + 100]
 setkey(exp, index)
-
 ## useful for testing:
 ## newColMeans <- function(x) {
 ##     print("this is x")
 ##     print(x)
 ##     colMeans(x)
 ## }
-
 expect_equal(align(dt1, t2, start=-10*one_second_duration, end=10*one_second_duration, sopen=TRUE, eopen=TRUE, func=colMeans), exp)
 #}
 
@@ -282,7 +279,6 @@ expect_equal(align(dt1, t2, end=as.nanoduration(1), eopen=FALSE, func=square_col
 
 #test_align.func_error_dim <- function() {
 ## test when 'func' returns an incorrect number of columns
-one_second_duration  <- 1e9
 cols <- 3
 rows <- 100
 t1 <- nanotime(1:rows * one_second_duration)
@@ -295,7 +291,6 @@ expect_error(align(dt1, t2, end=as.nanoduration(1), func=square_col1))
 
 #test_align.func_error_incorrect_function <- function() {
 ## test when 'func' cannot be called
-one_second_duration  <- 1e9
 cols <- 3
 rows <- 100
 t1 <- nanotime(1:rows * one_second_duration)
@@ -391,7 +386,7 @@ t1 <- nanotime(1:rows * one_second_duration * 2 + one_second_duration)
 dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
 setkey(dt1, index)
 t2 <- nanotime(1:10 * one_second_duration * 10)
-exp <- data.table(index=t2, V1=c(rep(1, 8), rep(0, 2)))
+exp <- data.table(index=t2, V1=0)
 setkey(exp, index)
 expect_equal(align(dt1, t2, start=-one_second_period, sopen=TRUE, eopen=FALSE, func=nrow, tz="America/New_York"), exp)
 
@@ -458,7 +453,7 @@ rows <- 100
 t1 <- nanotime(0:(rows-1) * one_second_duration)
 dt1 <- data.table(index=t1, matrix(0:(rows*cols-1), rows, cols))
 setkey(dt1, index)
-res <- grid.align(dt1, by=as.nanoduration("00:00:30"), start=nanotime(0), end=nanotime(0) + 2*30*one_second_duration, func=nrow)
+res <- grid.align(dt1, by=as.nanoduration("00:00:30"), grid_start=nanotime(0), grid_end=nanotime(0) + 2*30*one_second_duration, func=nrow)
 exp <- data.table(index=seq(dt1$index[1], by=30*one_second_duration, length.out=3), V1=c(0, 30, 30))
 setkey(exp, index)
 expect_equal(res, exp)
@@ -484,23 +479,120 @@ expect_equal(res, exp)
 ## tests for when there are duplicate times in the vector to align onto:
 ## --------------------------------------------------------------------
 
-## align.idx, random duplicates
+## align.idx duplicates in t2:
 t1 <- nanotime(1:100 * one_second_duration)
 time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
 t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
 expect_equal(align.idx(t1, t2, sopen=FALSE, eopen=FALSE), time_vec * 10)
 
-## check the same but with duplicate on open start boundary
+## check the same but with duplicate in t1:
+t1 <- nanotime(rep(1:10, each=2) * one_second_duration)
+t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration)
+# we don't expect the indices to be duplicates, because the indices represent a number for each element of t2:
+expect_equal(align.idx(t1, t2, sopen=FALSE, eopen=FALSE), c(1, 3, 5, 5, 7, 9, 11, 13, 15, 15))
 
-## check the same but with duplicate on closed start boundary
+## check the same but with duplicate on open start boundary with no interval:
+t1 <- nanotime(rep(1:10, each=2) * one_second_duration)
+t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration)
+# we don't expect the indices to be duplicates, because the indices represent a number for each element of t2:
+expect_equal(align.idx(t1, t2, sopen=TRUE, eopen=FALSE), rep(NA_real_, length(t2)))
 
-## check the same but with duplicate on open start boundary
+## idx.align, duplicates in t2, with interval:
+t1 <- nanotime(1:100 * one_second_duration)
+time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
+t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
+expect_equal(align.idx(t1, t2, start=-one_second_duration, sopen=FALSE, eopen=FALSE), time_vec * 10)
 
-## check the same but with duplicate on closed end boundary
+## idx.align, duplicates in t2, with interval, sopen=TRUE:
+t1 <- nanotime(1:100 * one_second_duration)
+time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
+t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
+expect_equal(align.idx(t1, t2, start=-one_second_duration, sopen=TRUE, eopen=FALSE), time_vec * 10)
 
+## idx.align, duplicates in t2, with interval, sopen=FALSE, eopen=TRUE:
+t1 <- nanotime(1:100 * one_second_duration)
+time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
+t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
+## since we have eopen TRUE, we have to fetch one index before, hence the '-1':
+expect_equal(align.idx(t1, t2, start=-one_second_duration, sopen=FALSE, eopen=TRUE), time_vec * 10 - 1)
 
-## align
+## align, duplicates in t2
+t1 <- nanotime(1:100 * one_second_duration)
+dt1 <- data.table(index=t1, 1)
+setkey(dt1, index)
+time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
+t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
+dt2 <- data.table(index=t2, V1=2)
+setkey(dt2, index)
+## since we have eopen TRUE, we have to fetch one index before, hence the '-1':
+expect_equal(align(dt1, t2, start=-2*one_second_duration, func=sum), dt2)
 
+## align, duplicates in t1/t2
+t1 <- nanotime(rep(1:50, each=2) * one_second_duration)
+dt1 <- data.table(index=t1, 1)
+setkey(dt1, index)
+time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
+t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
+dt2 <- data.table(index=t2, V1=c(rep(4, 6), rep(0, 4)))
+setkey(dt2, index)
+## since we have eopen TRUE, we have to fetch one index before, hence the '-1':
+expect_equal(align(dt1, t2, start=-2*one_second_duration, func=sum), dt2)
+
+## align, duplicates in t1/t2, sopen/eopen FALSE
+t1 <- nanotime(rep(1:50, each=2) * one_second_duration)
+dt1 <- data.table(index=t1, 1)
+setkey(dt1, index)
+time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
+t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
+dt2 <- data.table(index=t2, V1=c(rep(6, 6), rep(0, 4)))
+setkey(dt2, index)
+## since we have eopen TRUE, we have to fetch one index before, hence the '-1':
+expect_equal(align(dt1, t2, start=-2*one_second_duration, sopen=FALSE, eopen=FALSE, func=sum), dt2)
+
+## align, duplicates in t2:
+t1 <- nanotime(rep(1:100, each=1) * one_second_duration)
+dt1 <- data.table(index=t1, 1)
+setkey(dt1, index)
+time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
+t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
+dt2 <- data.table(index=t2, V1=0)
+setkey(dt2, index)
+expect_equal(align(dt1, t2, start=-one_second_duration, sopen=TRUE, eopen=TRUE, func=sum), dt2)
+dt2[, V1 := 1]
+expect_equal(align(dt1, t2, start=-one_second_duration, sopen=TRUE, eopen=FALSE, func=sum), dt2)
+expect_equal(align(dt1, t2, start=-one_second_duration, sopen=FALSE, eopen=TRUE, func=sum), dt2)
+dt2[, V1 := 2]
+expect_equal(align(dt1, t2, start=-one_second_duration, sopen=FALSE, eopen=FALSE, func=sum), dt2)
+
+## align, duplicates in t1/t2:
+t1 <- nanotime(rep(1:50, each=2) * one_second_duration)
+dt1 <- data.table(index=t1, 1)
+setkey(dt1, index)
+time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
+t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
+dt2 <- data.table(index=t2, V1=c(rep(0, 6), rep(0, 4)))
+setkey(dt2, index)
+expect_equal(align(dt1, t2, start=-one_second_duration, sopen=TRUE, eopen=TRUE, func=sum), dt2)
+dt2[, V1 := c(rep(2, 6), rep(0, 4))]
+expect_equal(align(dt1, t2, start=-one_second_duration, sopen=TRUE, eopen=FALSE, func=sum), dt2)
+expect_equal(align(dt1, t2, start=-one_second_duration, sopen=FALSE, eopen=TRUE, func=sum), dt2)
+dt2[, V1 := c(rep(4, 6), rep(0, 4))]
+expect_equal(align(dt1, t2, start=-one_second_duration, sopen=FALSE, eopen=FALSE, func=sum), dt2)
+
+## align, duplicates in t1/t2, period:
+t1 <- nanotime(rep(1:50, each=2) * one_second_duration)
+dt1 <- data.table(index=t1, 1)
+setkey(dt1, index)
+time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
+t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
+dt2 <- data.table(index=t2, V1=c(rep(0, 6), rep(0, 4)))
+setkey(dt2, index)
+expect_equal(align(dt1, t2, start=-one_second_period, sopen=TRUE, eopen=TRUE, func=sum, tz="UTC"), dt2)
+dt2[, V1 := c(rep(2, 6), rep(0, 4))]
+expect_equal(align(dt1, t2, start=-one_second_period, sopen=TRUE, eopen=FALSE, func=sum, tz="UTC"), dt2)
+expect_equal(align(dt1, t2, start=-one_second_period, sopen=FALSE, eopen=TRUE, func=sum, tz="UTC"), dt2)
+dt2[, V1 := c(rep(4, 6), rep(0, 4))]
+expect_equal(align(dt1, t2, start=-one_second_period, sopen=FALSE, eopen=FALSE, func=sum, tz="UTC"), dt2)
 
 
 ## tests for unsorted calls to align.idx:

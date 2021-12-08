@@ -359,15 +359,15 @@ setGeneric("grid.align", function(x, by, ...) standardGeneric("grid.align"))
 grid_align_duration <- function(x,                           # time-series
                                 by,                          # the grid size
                                 func=NULL,                   # function to apply on the subgroups
-                                start=x[[1]][1] + by,        # start of the grid
-                                end=tail(x[[1]], 1),         # end of the grid
+                                grid_start=x[[1]][1] + by,   # start of the grid
+                                grid_end=tail(x[[1]], 1),    # end of the grid
                                 ival_start=-by,              # the interval start
                                 ival_end=as.nanoduration(0), # the interval end
                                 ival_sopen=FALSE,            # the interval start open 
                                 ival_eopen=TRUE)             # the interval end open
 {
-    grid <- seq(start, end, by=by)
-    if (tail(grid,1) < end) {
+    grid <- seq(grid_start, grid_end, by=by)
+    if (tail(grid,1) < grid_end) {
         grid <- c(grid, tail(grid,1) + by)
     }
     
@@ -382,19 +382,19 @@ grid_align_duration <- function(x,                           # time-series
 }
 
 
-grid_align_period <- function(x,                              # time-series
-                              by,                             # the grid size
-                              func=NULL,                      # function to apply on the subgroups
-                              start=plus(x[[1]][1], by, tz),  # start of the grid
-                              end=tail(x[[1]], 1),            # end of the grid
-                              ival_start=-by,                 # the interval start
-                              ival_end=as.nanoperiod(0),      # the interval end
-                              ival_sopen=FALSE,               # the interval start open 
-                              ival_eopen=TRUE,                # the interval end open
-                              tz)                             # time zone when using 'period'
+grid_align_period <- function(x,                                   # time-series
+                              by,                                  # the grid size
+                              func=NULL,                           # function to apply on the subgroups
+                              grid_start=plus(x[[1]][1], by, tz),  # start of the grid
+                              grid_end=tail(x[[1]], 1),            # end of the grid
+                              ival_start=-by,                      # the interval start
+                              ival_end=as.nanoperiod(0),           # the interval end
+                              ival_sopen=FALSE,                    # the interval start open 
+                              ival_eopen=TRUE,                     # the interval end open
+                              tz)                                  # time zone when using 'period'
 {
-    grid <- seq(start, end, by=by, tz=tz)
-    if (tail(grid,1) < end) {
+    grid <- seq(grid_start, grid_end, by=by, tz=tz)
+    if (tail(grid,1) < grid_end) {
         grid  <- c(grid, plus(tail(grid,1), by, tz))
     }
 
@@ -422,9 +422,9 @@ grid_align_period <- function(x,                              # time-series
 ##' @param x the \code{data.table} time-series to align from
 ##' @param by interval specified as a \code{nanoduration} or
 ##'     \code{nanoperiod}.
-##' @param start scalar \code{nanotime} defining the start of the
+##' @param grid_start scalar \code{nanotime} defining the start of the
 ##'     grid; by default the first element of \code{x} is taken.
-##' @param end scalar \code{nanotime} defining the end of the grid; by
+##' @param grid_end scalar \code{nanotime} defining the end of the grid; by
 ##'     default the last element of \code{x} is taken.
 ##' @param ival_start scalar of type \code{nanoduration} or
 ##'     \code{nanoperiod}; \code{ival_start} is added to each element
