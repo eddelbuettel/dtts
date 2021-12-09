@@ -12,8 +12,8 @@ grid.align(x, by, ...)
   x,
   by,
   func = NULL,
-  start = x[[1]][1] + by,
-  end = tail(x[[1]], 1),
+  grid_start = x[[1]][1] + by,
+  grid_end = tail(x[[1]], 1),
   ival_start = -by,
   ival_end = as.nanoduration(0),
   ival_sopen = FALSE,
@@ -24,8 +24,8 @@ grid.align(x, by, ...)
   x,
   by,
   func = NULL,
-  start = plus(x[[1]][1], by, tz),
-  end = tail(x[[1]], 1),
+  grid_start = plus(x[[1]][1], by, tz),
+  grid_end = tail(x[[1]], 1),
   ival_start = -by,
   ival_end = as.nanoperiod(0),
   ival_sopen = FALSE,
@@ -45,10 +45,10 @@ grid.align(x, by, ...)
 arbitrary aggregation of its argument; if \code{NULL} then a
 function which takes the closest observation is used.}
 
-\item{start}{scalar \code{nanotime} defining the start of the
+\item{grid_start}{scalar \code{nanotime} defining the start of the
 grid; by default the first element of \code{x} is taken.}
 
-\item{end}{scalar \code{nanotime} defining the end of the grid; by
+\item{grid_end}{scalar \code{nanotime} defining the end of the grid; by
 default the last element of \code{x} is taken.}
 
 \item{ival_start}{scalar of type \code{nanoduration} or

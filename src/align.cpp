@@ -170,7 +170,7 @@ ForwardIt lower_bound_sopen(ForwardIt first, ForwardIt last, const T& value)
         it = first; 
         step = count / 2; 
         std::advance(it, step);
-        if (*it < value) {
+        if (*it <= value) {     // '<=' rather than '<' as in the STL!
             first = ++it; 
             count -= step + 1; 
         }
