@@ -406,6 +406,11 @@ exp <- data.table(index=as.nanotime(c("2021-11-07T00:00:00-04:00", "2021-11-07T2
 setkey(exp, index)
 expect_equal(grid.align(dt1, by=as.nanoduration("24:00:00")), exp)
 
+## nanoduration error with dt
+dt1 <- data.table(index=1:10, V1=1:10)
+setkey(dt1, index)
+expect_error(grid.align(dt1, by=as.nanoduration("24:00:00")), "first column of 'data.table' must be of type 'nanotime'")
+
 ## nanoperiod
 t1 <- seq(from=as.nanotime("2021-11-06T00:00:00 America/New_York"),
           to=as.nanotime("2021-11-09T00:00:00 America/New_York"),
@@ -418,6 +423,11 @@ exp <- data.table(index=as.nanotime(c("2021-11-07T00:00:00-04:00", "2021-11-08T0
                   V1=c(24, 49, 73))
 setkey(exp, index)
 expect_equal(grid.align(dt1, by=as.nanoperiod("1d"), tz="America/New_York"), exp)
+
+## nanoduration error with dt
+dt1 <- data.table(index=1:10, V1=1:10)
+setkey(dt1, index)
+expect_error(grid.align(dt1, by=as.nanoperiod("24:00:00")), "first column of 'data.table' must be of type 'nanotime'")
 
 ## this test to make the grid longer than t1:
 t1 <- seq(from=as.nanotime("2021-11-06T00:00:00 America/New_York"),
@@ -440,7 +450,7 @@ rows <- 100
 t1 <- nanotime(1:rows * one_second_duration)
 dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
 setkey(dt1, index)
-res <- grid.align(dt1, by=as.nanoduration("00:00:30"), func=nrow)
+res <- dtts:::frequency(dt1, by=as.nanoduration("00:00:30"))
 exp <- tail(data.table(index=seq(dt1$index[1], by=30*one_second_duration, length.out=4), V1=30), -1)
 exp <- rbind(exp, data.table(index=tail(exp$index,1)+30*one_second_duration, V1=10))
 setkey(exp, index)
@@ -453,7 +463,7 @@ rows <- 100
 t1 <- nanotime(0:(rows-1) * one_second_duration)
 dt1 <- data.table(index=t1, matrix(0:(rows*cols-1), rows, cols))
 setkey(dt1, index)
-res <- grid.align(dt1, by=as.nanoduration("00:00:30"), grid_start=nanotime(0), grid_end=nanotime(0) + 2*30*one_second_duration, func=nrow)
+res <- dtts:::frequency(dt1, by=as.nanoduration("00:00:30"), grid_start=nanotime(0), grid_end=nanotime(0) + 2*30*one_second_duration)
 exp <- data.table(index=seq(dt1$index[1], by=30*one_second_duration, length.out=3), V1=c(0, 30, 30))
 setkey(exp, index)
 expect_equal(res, exp)
@@ -465,7 +475,7 @@ t1 <- seq(nanotime("2021-02-01 00:00:00 America/New_York"), nanotime("2021-04-01
           by=as.nanoperiod("01:00:00"), tz="America/New_York")
 dt1 <- data.table(index=t1, V1=1:length(t1))
 setkey(dt1, index)
-res <- grid.align(dt1, by=as.nanoperiod("1d"), tz="America/New_York", func=nrow)
+res <- dtts:::frequency(dt1, by=as.nanoperiod("1d"), tz="America/New_York")
 
 t2 <- seq(nanotime("2021-02-02 00:00:00 America/New_York"), nanotime("2021-04-01 00:00:00 America/New_York"),
           by=as.nanoperiod("1d"), tz="America/New_York")
@@ -475,6 +485,8 @@ setkey(exp, index)
 expect_equal(res, exp)
 #}
 
+## frequency wrong 'by' type:
+expect_error(dtts:::frequency(dt1, by=3), "argument 'by' must be either 'nanoduration' or 'nanotime'")
 
 ## tests for when there are duplicate times in the vector to align onto:
 ## --------------------------------------------------------------------
