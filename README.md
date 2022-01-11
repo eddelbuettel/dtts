@@ -4,18 +4,18 @@
 
 ## Motivation
 
-By using [`nanotime`](https://CRAN.R-project.org/package=nanotime) we
-get time-series with nanosecond resolution and by basing them on
-[`data.table`](https://CRAN.R-project.org/package=data.table) we can
-leverage the conciseness, high performance, and memory efficiency.
+Combining package [`nanotime`](https://CRAN.R-project.org/package=nanotime) for
+operating with nanosecond time-resolution with package
+[`data.table`](https://CRAN.R-project.org/package=data.table) leverages
+leverage the conciseness, high performance, and memory efficiency of the
+latter to provide high-resolution, high-performance time series operations.
 
-These time-series are simply a `data.table` with a first column of
-type `nanotime` and a key on it. This means all the standard
-`data.table` functions can be used, and this package consolidates this
-functionality.
+Our time-series representation is simply a `data.table` with a first column
+of type `nanotime` and a key on it. This means all the standard `data.table`
+functions can be used, and this package consolidates this functionality.
 
-Specifically, `dtts` proposes alignment functions that are
-particularly versatile and allow to work across time-zones.
+Specifically, `dtts` proposes alignment functions that are particularly
+versatile, and allow to work across time-zones.
 
 ## Usage
 
@@ -32,12 +32,13 @@ hour with a data column `V1` containing random data:
 
 ~~~ R
 library(data.table)
+library(nanotime)
 t1 <- seq(as.nanotime(Sys.time()), by=as.nanoduration("01:00:00"), length.out=10)
 dt1 <- data.table(index=t1, V1=runif(10))
 setkey(dt1, index)
 ~~~
 
-Which produces:
+produces:
 
 ~~~
                                index        V1
@@ -53,20 +54,28 @@ Which produces:
 10: 2021-11-21T15:23:12.404650+00:00 0.4744729
 ~~~
 
+(Note that we can also write this in a single `data.table` statement as
+
+~~~ R
+dt1 <- data.table(index = seq(as.nanotime(Sys.time()), by=as.nanoduration("01:00:00"), length.out=10),
+                  V1 = runif(10),
+                  key = "index")
+~~~
+
 ### Alignment functions
 
 Alignment is the process of matching one time series to another. All
 alignment functions in this package work in a similar way. For each
 point in the vector `y` onto which `x` is aligned, a pair or arguments
 named `start` and `end` define an interval around it. As an example
-let's take `start` equal to -1 hour and `end` equal to 0 hour. This
+let us take `start` equal to -1 hour and `end` equal to 0 hour. This
 means that a `y` of 2021-11-20 11:00:00 defines an interval from
 2021-11-20 10:00:00 to 2021-11-20 11:00:00. The alignment process will
 then use that interval to pick points in order to compute one or more
 statistics on that interval for the corresponding point in `y`.
 
 In addition to the arguments `start` and `end`, two other arguments,
-booleans named `sopen` and `eopen` define if the start and end,
+booleans named `sopen` and `eopen`, define if the start and end,
 respectively, of the interval are open or not.
 
 Finally, note that when the interval is specified with a `nanoperiod`
