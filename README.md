@@ -7,7 +7,7 @@
 Combining package [`nanotime`](https://CRAN.R-project.org/package=nanotime) for
 operating with nanosecond time-resolution with package
 [`data.table`](https://CRAN.R-project.org/package=data.table) leverages
-leverage the conciseness, high performance, and memory efficiency of the
+the conciseness, high performance, and memory efficiency of the
 latter to provide high-resolution, high-performance time series operations.
 
 Our time-series representation is simply a `data.table` with a first column
@@ -25,7 +25,7 @@ Three operations are necessary to create a `data.table`-based
 time-series for use with the functions defined in this package:
 1. Create the time index, i.e. a vector of `nanotime`
 2. Create a `data.table` with the first column being the time index 
-3. Specify the first column as a key
+   and specifying it as a key
 
 For instance, this code creates a time-series of 10 rows spaced every
 hour with a data column `V1` containing random data:
@@ -34,8 +34,7 @@ hour with a data column `V1` containing random data:
 library(data.table)
 library(nanotime)
 t1 <- seq(as.nanotime(Sys.time()), by=as.nanoduration("01:00:00"), length.out=10)
-dt1 <- data.table(index=t1, V1=runif(10))
-setkey(dt1, index)
+dt1 <- data.table(index=t1, V1=runif(10), key="index")
 ~~~
 
 produces:
@@ -64,15 +63,16 @@ dt1 <- data.table(index = seq(as.nanotime(Sys.time()), by=as.nanoduration("01:00
 
 ### Alignment functions
 
-Alignment is the process of matching one time series to another. All
-alignment functions in this package work in a similar way. For each
-point in the vector `y` onto which `x` is aligned, a pair or arguments
-named `start` and `end` define an interval around it. As an example
-let us take `start` equal to -1 hour and `end` equal to 0 hour. This
-means that a `y` of 2021-11-20 11:00:00 defines an interval from
-2021-11-20 10:00:00 to 2021-11-20 11:00:00. The alignment process will
-then use that interval to pick points in order to compute one or more
-statistics on that interval for the corresponding point in `y`.
+Alignment is the process of matching the time of the observations of
+one time series to another. All alignment functions in this package
+work in a similar way. For each point in the vector `y` onto which `x`
+is aligned, a pair or arguments named `start` and `end` define an
+interval around this point. As an example let us take `start` equal to
+-1 hour and `end` equal to 0 hour. This means that a `y` of 2021-11-20
+11:00:00 defines an interval from 2021-11-20 10:00:00 to 2021-11-20
+11:00:00. The alignment process will then use that interval to pick
+points in order to compute one or more statistics on that interval for
+the corresponding point in `y`.
 
 In addition to the arguments `start` and `end`, two other arguments,
 booleans named `sopen` and `eopen`, define if the start and end,
@@ -101,12 +101,11 @@ This function takes two vectors of type `nanotime`. It aligns the
 first one onto the second one and returns the indices of the first
 vector that align with the second vector. There is no choice of
 aggregation function here as this function works uniquely on
-`nanotime` vectors and so there are no `data.table` columns on which
-to operate, so the behavior here is to take the point in `x` that
-falls in the interval and that is closest to the point of alignment in
-`y`. The index of the point that falls in that interval is returned at
-the position of the vector `y`. If no point exists in that interval
-`NaN` is returned.
+`nanotime` vectors. The algorithm selects the point in `x` that falls
+in the interval that is closest to the point of alignment in `y`. The
+index of the point that falls in that interval is returned at the
+position of the vector `y`. If no point exists in that interval `NaN`
+is returned.
 
 
 ~~~ R
@@ -126,21 +125,20 @@ Which produces:
 
 #### `align`
 
-This function takes a `data.table` and aligns is onto `y`, a vector of
+This function takes a `data.table` and aligns it onto `y`, a vector of
 `nanotime`. Like `align.idx`, it uses the arguments `start`, `end`,
 `sopen` and `eopen` to define the intervals around the points in `y`. 
 
-Instead of the result being an index, it is this time a new
-`data.table` time-series with the first `nanotime` column being the
-vector `y`, and the rows of this time-series are taken from the
-`data.table` `x`. If no function is specified (i.e. `func` is `NULL`),
-the function returns the row of the point in `x` that is in the
-interval and that is closest to the point in `y` on which the
-alignment is made. If `func` is defined, it receives for each point in
-`y` all the rows in `x` that are in the defined interval. So `func`
-must be a statistic that returns one row, but any number of
-columns. Common examples are means (e.g. using `colMeans`), counts,
-etc.
+Instead of the result being an index, it is a new `data.table`
+time-series with the first `nanotime` column being the vector `y`, and
+the rows of this time-series are taken from the `data.table` `x`. If
+no function is specified (i.e. `func` is `NULL`), the function returns
+the row of the point in `x` that is in the interval and that is
+closest to the point in `y` on which the alignment is made. If `func`
+is defined, it receives for each point in `y` all the rows in `x` that
+are in the defined interval. So `func` must be a statistic that
+returns one row, but it may return one or more columns. Common examples
+are means (e.g. using `colMeans`), counts, etc.
 
 
 In the following example a time-series `dt1` is created with a data
@@ -177,19 +175,19 @@ Which produces:
 
 #### `grid.align`
 
-This function adds one more dimension to the function `align` in the
-sense that instead of taking a vector `y`, it constructs it as a grid
-that has as interval the value supplied in the argument `by`. The
-interval is controllable (with arguments `ival_start`, `ival_end`,
-`ival_sopen`, `ival_eopen`) but it is likely that in most cases the
-default will be used which is the grid interval. As for `align`, the
-caller can specify `func`. Finally, note that `by` can be either a
-`nanoduration` or a `nanoperiod`. In the latter case, as for the other
-functions, the argument `tz` must be supplied so that the `nanoperiod`
-interval can be anchored in a specific timezone.
+This function adds one more dimension to the function `align`. Instead
+of taking a vector `y`, it constructs a grid that has as interval the
+value supplied in the argument `by`. The interval is controllable
+(with arguments `ival_start`, `ival_end`, `ival_sopen`, `ival_eopen`)
+but it is likely that in most cases the default will be used which is
+the grid interval. As in the case of `align`, the caller can specify
+`func`. Finally, note that `by` can be either a `nanoduration` or a
+`nanoperiod`. In the latter case, as for the other functions, the
+argument `tz` must be supplied so that the `nanoperiod` interval can
+be anchored to a specific timezone.
 
 The following example is the same as for the `align` function, but
-shows how the vector `t2` does not need to be supplied as it is
+shows that the vector `t2` does not need to be supplied as it is
 instead constructed by `grid.align`:
 
 ~~~ R
@@ -224,8 +222,8 @@ Using `grid.align` and `nrow` it is possible to get the frequency of a
 time-series, i.e. to count the number of elements in each interval of
 a grid.
 
-Taking the same example as above and we see that the result is the
-count of elements of `dt1` that are in each interval:
+Taking the same example as above, we see that the result is the count
+of elements of `dt1` that are in each interval:
 
 ~~~ R
 library(dtts)
@@ -253,11 +251,27 @@ Which produces:
 10: 1970-01-01T00:01:40+00:00 10
 ~~~
 
+
+### Time-series subsetting
+
+Using `nanoival`, it is possible to do complex subsetting of a time-series:
+
+~~~ R
+one_second <- 1e9
+index <- seq(nanotime("2022-12-12 12:12:10+00:00"), length.out=10, by=one_second)
+dts <- data.table(index=index, data=1:length(index), key="index")
+ival <- c(as.nanoival("-2022-12-12 12:12:10+00:00 -> 2022-12-12 12:12:14+00:00-"),
+          as.nanoival("+2022-12-12 12:12:18+00:00 -> 2022-12-12 12:12:20+00:00+"))
+dts[index %in% ival]
+
+~~~
+
 ## Status
 
-`dtts` currently proposes only a set of alignment functions. "Moving"
-functions such as moving sum, moving average, etc. are planned but not
-yet implemented.
+`dtts` currently proposes only a set of alignment functions, but it is
+likely that other time-series functions will be impletemented so that
+`nanotime`-based time-series have reasonably complete time-series
+functionality.
 
 See the [issue tickets](https://github.com/eddelbuettel/dtts/issues)
 for an up to date list of potentially desirable, possibly planned, or

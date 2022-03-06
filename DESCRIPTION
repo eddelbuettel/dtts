@@ -2,7 +2,7 @@ Package: dtts
 Type: Package
 Title: data.table time-series
 Version: 0.0.4
-Date: 2021-11-21
+Date: 2022-03-06
 Author: Dirk Eddelbuettel and Leonardo Silvestri
 Maintainer: Dirk Eddelbuettel <edd@debian.org>
 Description: High-frequence time-series support via 'nanotime' and 'data.table'.
