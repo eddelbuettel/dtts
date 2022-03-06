@@ -1,6 +1,7 @@
 
 suppressMessages({
     library(dtts)                           # in case test script gets run stand-alone
+    library(nanotime)
     library(data.table)
 })
 
