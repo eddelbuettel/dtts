@@ -22,11 +22,15 @@ template<typename Clock, typename Duration>
 std::ostream &operator<<(std::ostream &stream,
                          const std::chrono::time_point<Clock, Duration> &time_point) {
   const time_t time = Clock::to_time_t(time_point);
-#if __GNUC__ > 4 || \
-    ((__GNUC__ == 4) && __GNUC_MINOR__ > 8 && __GNUC_REVISION__ > 1)
+#if (__GNUC__ > 4 || ((__GNUC__ == 4) && __GNUC_MINOR__ > 8 && __GNUC_REVISION__ > 1))
   // Maybe the put_time will be implemented later?
   struct tm tm;
+  // thanks to https://stackoverflow.com/a/38034148/143305 for the next test
+  #if defined(__unix__)
   localtime_r(&time, &tm);
+  #elif defined(_MSC_VER)
+  localtime_s(&tm, &time);
+  #endif
   return stream << std::put_time(&tm, "%c"); // Print standard date&time
 #else
   char buffer[26];
