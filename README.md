@@ -1,6 +1,12 @@
-# dtts
+## dtts: Time-series functionality based on `nanotime` and `data.table`.
 
-`dtts` provides time-series functionality based on `nanotime` and `data.table`.
+[![CI](https://github.com/eddelbuettel/dtts/workflows/ci/badge.svg)](https://github.com/eddelbuettel/dtts/actions?query=workflow%3Aci)
+[![License](https://eddelbuettel.github.io/badges/GPL2+.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
+[![CRAN](https://www.r-pkg.org/badges/version/dtts)](https://cran.r-project.org/package=dtts)
+[![Dependencies](https://tinyverse.netlify.com/badge/dtts)](https://cran.r-project.org/package=dtts)
+[![Downloads](https://cranlogs.r-pkg.org/badges/dtts?color=brightgreen)](https://www.r-pkg.org/pkg/dtts)
+[![Code Coverage](https://codecov.io/gh/eddelbuettel/dtts/graph/badge.svg)](https://app.codecov.io/gh/eddelbuettel/dtts)
+[![Last Commit](https://img.shields.io/github/last-commit/eddelbuettel/dtts)](https://github.com/eddelbuettel/dtts)
 
 ## Motivation
 
@@ -260,8 +266,8 @@ Using `nanoival`, it is possible to do complex subsetting of a time-series:
 one_second <- 1e9
 index <- seq(nanotime("2022-12-12 12:12:10+00:00"), length.out=10, by=one_second)
 dts <- data.table(index=index, data=1:length(index), key="index")
-ival <- c(as.nanoival("-2022-12-12 12:12:10+00:00 -> 2022-12-12 12:12:14+00:00-"),
-          as.nanoival("+2022-12-12 12:12:18+00:00 -> 2022-12-12 12:12:20+00:00+"))
+ival <- as.nanoival(c("-2022-12-12 12:12:10+00:00 -> 2022-12-12 12:12:14+00:00-"),
+                     ("+2022-12-12 12:12:18+00:00 -> 2022-12-12 12:12:20+00:00+"))
 dts[index %in% ival]
 
 ~~~
