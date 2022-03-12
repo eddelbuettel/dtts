@@ -285,8 +285,17 @@ at least discussed items.
 
 ## Installation
 
+The package is on [CRAN](https://cran.r-project.org) and can be installed via a standard
+
+
 ```r
-remotes::install_github("eddelbuettel/dtts.utils")
+install.packages("dtts")
+```
+
+and development versions can be installed via
+
+```r
+remotes::install_github("eddelbuettel/dtts")
 ```
 
 ## Author
