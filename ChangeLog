@@ -1,5 +1,7 @@
 2023-03-22  Dirk Eddelbuettel  <edd@debian.org>
 
+	* DESCRIPTION (Versio, Date): Roll minor version and date
+
 	* src/Makevars: Removed as we do not set a compilation standard
 
 2022-03-10  Dirk Eddelbuettel  <edd@debian.org>
