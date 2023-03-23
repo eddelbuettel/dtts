@@ -4,9 +4,13 @@
 
 	* src/Makevars: Removed as we do not set a compilation standard
 
+2022-08-21  Dirk Eddelbuettel  <edd@debian.org>
+
+	* src/align.cpp (align_{,idx}_{duration,period}): Small simplification
+
 2022-03-10  Dirk Eddelbuettel  <edd@debian.org>
 
-	* README.md: Add badges, polish one example (thanks, @janogorecki)
+	* README.md: Add badges, polish one example (thanks, @jangorecki)
 
 2022-03-06  Dirk Eddelbuettel  <edd@debian.org>
 

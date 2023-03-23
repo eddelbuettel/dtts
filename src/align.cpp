@@ -346,23 +346,16 @@ Rcpp::List align_duration(const Rcpp::NumericVector& x,         // nanotime vect
                           const Rcpp::LogicalVector& eopen,     // end open
                           const Rcpp::Function func)            // function to apply (character)
 {
-  try {
-    return align_func_duration(reinterpret_cast<const nanotime::dtime*>(&x[0]),
-                               x.size(),
-                               reinterpret_cast<const nanotime::dtime*>(&y[0]),
-                               y.size(),
-                               xdata,
-                               ConstPseudoVectorDuration(start),
-                               ConstPseudoVectorDuration(end),
-                               ConstPseudoVectorLgl(sopen),
-                               ConstPseudoVectorLgl(eopen),
-                               Rcpp::Function(func));
-  } catch(std::exception &ex) {	
-    forward_exception_to_r(ex);
-  } catch(...) { 
-    ::Rf_error("c++ exception (unknown reason)"); 
-  }
-  return R_NilValue;         // not reached
+  return align_func_duration(reinterpret_cast<const nanotime::dtime*>(&x[0]),
+                             x.size(),
+                             reinterpret_cast<const nanotime::dtime*>(&y[0]),
+                             y.size(),
+                             xdata,
+                             ConstPseudoVectorDuration(start),
+                             ConstPseudoVectorDuration(end),
+                             ConstPseudoVectorLgl(sopen),
+                             ConstPseudoVectorLgl(eopen),
+                             Rcpp::Function(func));
 }
 
 
@@ -377,24 +370,17 @@ Rcpp::List align_period(const Rcpp::NumericVector& x,         // nanotime vector
                         const Rcpp::Function func,            // function to apply (character)
                         const Rcpp::CharacterVector tz)       // timezone
 {
-  try {
-    return align_func_period(reinterpret_cast<const nanotime::dtime*>(&x[0]),
-                             x.size(),
-                             reinterpret_cast<const nanotime::dtime*>(&y[0]),
-                             y.size(),
-                             xdata,
-                             ConstPseudoVectorPrd(start),
-                             ConstPseudoVectorPrd(end),
-                             ConstPseudoVectorLgl(sopen),
-                             ConstPseudoVectorLgl(eopen),
-                             Rcpp::Function(func),
-                             ConstPseudoVectorChar(tz));
-  } catch(std::exception &ex) {	
-    forward_exception_to_r(ex);
-  } catch(...) { 
-    ::Rf_error("c++ exception (unknown reason)");
-  }
-  return R_NilValue;         // not reached
+  return align_func_period(reinterpret_cast<const nanotime::dtime*>(&x[0]),
+                           x.size(),
+                           reinterpret_cast<const nanotime::dtime*>(&y[0]),
+                           y.size(),
+                           xdata,
+                           ConstPseudoVectorPrd(start),
+                           ConstPseudoVectorPrd(end),
+                           ConstPseudoVectorLgl(sopen),
+                           ConstPseudoVectorLgl(eopen),
+                           Rcpp::Function(func),
+                           ConstPseudoVectorChar(tz));
 }
 
 
@@ -406,21 +392,14 @@ Rcpp::NumericVector align_idx_duration(const Rcpp::NumericVector& x,     // nano
                                        const Rcpp::LogicalVector& sopen, // start open
                                        const Rcpp::LogicalVector& eopen) // end open
 {
-  try {
-    return align_idx_helper_duration(reinterpret_cast<const nanotime::dtime*>(&x[0]),
-                                     x.size(),
-                                     reinterpret_cast<const nanotime::dtime*>(&y[0]),
-                                     y.size(),
-                                     ConstPseudoVectorDuration(start),
-                                     ConstPseudoVectorDuration(end),
-                                     ConstPseudoVectorLgl(sopen),
-                                     ConstPseudoVectorLgl(eopen));
-  } catch(std::exception &ex) {	
-    forward_exception_to_r(ex);
-  } catch(...) { 
-    ::Rf_error("c++ exception (unknown reason)"); 
-  }
-  return R_NilValue;             // not reached
+  return align_idx_helper_duration(reinterpret_cast<const nanotime::dtime*>(&x[0]),
+                                   x.size(),
+                                   reinterpret_cast<const nanotime::dtime*>(&y[0]),
+                                   y.size(),
+                                   ConstPseudoVectorDuration(start),
+                                   ConstPseudoVectorDuration(end),
+                                   ConstPseudoVectorLgl(sopen),
+                                   ConstPseudoVectorLgl(eopen));
 }
 
 
@@ -433,22 +412,15 @@ Rcpp::NumericVector align_idx_period(const Rcpp::NumericVector& x,     // nanoti
                                      const Rcpp::LogicalVector& eopen, // end open
                                      const Rcpp::CharacterVector& tz)  // timezone
 {
-  try {
-    return align_idx_helper_period(reinterpret_cast<const nanotime::dtime*>(&x[0]),
-                                   x.size(),
-                                   reinterpret_cast<const nanotime::dtime*>(&y[0]),
-                                   y.size(),
-                                   ConstPseudoVectorPrd(start),
-                                   ConstPseudoVectorPrd(end),
-                                   ConstPseudoVectorLgl(sopen),
-                                   ConstPseudoVectorLgl(eopen),
-                                   ConstPseudoVectorChar(tz));
-  } catch(std::exception &ex) {	
-    forward_exception_to_r(ex);
-  } catch(...) { 
-    ::Rf_error("c++ exception (unknown reason)"); 
-  }
-  return R_NilValue;             // not reached
+  return align_idx_helper_period(reinterpret_cast<const nanotime::dtime*>(&x[0]),
+                                 x.size(),
+                                 reinterpret_cast<const nanotime::dtime*>(&y[0]),
+                                 y.size(),
+                                 ConstPseudoVectorPrd(start),
+                                 ConstPseudoVectorPrd(end),
+                                 ConstPseudoVectorLgl(sopen),
+                                 ConstPseudoVectorLgl(eopen),
+                                 ConstPseudoVectorChar(tz));
 }
 
 
