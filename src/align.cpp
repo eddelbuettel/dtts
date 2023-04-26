@@ -70,9 +70,9 @@ static Rcpp::NumericVector align_idx_helper_duration(const nanotime::dtime* x,
     // advance until we have a point in x that is in the interval
     // defined around yi:
     if (sopen[iy]) {
-      while (ix <= xlen && x[ix] <= ystart) ++ix;
+      while (ix < xlen && x[ix] <= ystart) ++ix;
     } else {
-      while (ix <= xlen && x[ix] < ystart) ++ix;
+      while (ix < xlen && x[ix] < ystart) ++ix;
     }
     if (eopen[iy]) {
       if (ix >= xlen || x[ix] >= yend) {
@@ -124,9 +124,9 @@ static Rcpp::NumericVector align_idx_helper_period(const nanotime::dtime* x,
     // advance until we have a point in x that is in the interval
     // defined around yi:
     if (sopen[iy]) {
-      while (ix <= xlen && x[ix] <= ystart) ++ix;
+      while (ix < xlen && x[ix] <= ystart) ++ix;
     } else {
-      while (ix <= xlen && x[ix] < ystart) ++ix;
+      while (ix < xlen && x[ix] < ystart) ++ix;
     }
     if (eopen[iy]) {
       if (ix >= xlen || x[ix] >= yend) {
