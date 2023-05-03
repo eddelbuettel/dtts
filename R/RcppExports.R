@@ -17,3 +17,7 @@
     .Call('_dtts_align_idx_period', PACKAGE = 'dtts', x, y, start, end, sopen, eopen, tz)
 }
 
+.ops <- function(xdata, ydata, op_string) {
+    .Call('_dtts_ops', PACKAGE = 'dtts', xdata, ydata, op_string)
+}
+

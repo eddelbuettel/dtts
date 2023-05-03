@@ -224,6 +224,12 @@ align_duration <- function(x,                         # data.table time-series
 }
 
 
+ops  <- function(x, y, func_string)
+{
+   .ops(x, y, func_string)
+}
+
+
 ##' Align a \code{data.table} onto a \code{nanotime} vector
 ##'
 ##' \code{align} returns the subset of \code{data.table} \code{x} that

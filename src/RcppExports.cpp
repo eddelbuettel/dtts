@@ -80,12 +80,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// ops
+Rcpp::List ops(Rcpp::List& xdata, Rcpp::List& ydata, Rcpp::String& op_string);
+RcppExport SEXP _dtts_ops(SEXP xdataSEXP, SEXP ydataSEXP, SEXP op_stringSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List& >::type xdata(xdataSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List& >::type ydata(ydataSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String& >::type op_string(op_stringSEXP);
+    rcpp_result_gen = Rcpp::wrap(ops(xdata, ydata, op_string));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_dtts_align_duration", (DL_FUNC) &_dtts_align_duration, 8},
     {"_dtts_align_period", (DL_FUNC) &_dtts_align_period, 9},
     {"_dtts_align_idx_duration", (DL_FUNC) &_dtts_align_idx_duration, 6},
     {"_dtts_align_idx_period", (DL_FUNC) &_dtts_align_idx_period, 7},
+    {"_dtts_ops", (DL_FUNC) &_dtts_ops, 3},
     {NULL, NULL, 0}
 };
 

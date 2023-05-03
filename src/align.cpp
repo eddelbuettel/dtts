@@ -3,6 +3,8 @@
 #include <chrono>
 #include <iterator>
 #include <cstdint>
+#include <functional>
+#include <vector>
 #include <Rcpp.h>
 #include <R_ext/Rdynload.h>
 #include "nanotime/globals.hpp"
@@ -421,6 +423,94 @@ Rcpp::NumericVector align_idx_period(const Rcpp::NumericVector& x,     // nanoti
                                  ConstPseudoVectorLgl(sopen),
                                  ConstPseudoVectorLgl(eopen),
                                  ConstPseudoVectorChar(tz));
+}
+
+
+
+// this function takes two vectors and positional args and an op:
+template<typename U, int RTYPE, typename F>
+void applyv(U x, Rcpp::Vector<RTYPE>& y, size_t y_s, size_t y_e, F f) {
+  for (auto iy=y_s; iy<y_e; ++iy) {
+    y[iy] = f(x, y[iy]);
+  }
+}
+
+
+void ops_helper(const nanotime::dtime* x,
+                size_t xlen,
+                const nanotime::dtime* y,
+                size_t ylen,
+                const Rcpp::NumericVector& xdata,
+                Rcpp::NumericVector& ydata,
+                std::function<double(double, double)> op)
+{
+  size_t ix = 0;
+ 
+  // for each point in x, we try to find a matching point or set of
+  // points in y:
+
+  auto from_yiter = y;
+  for (ix=0; ix < xlen; ix++) {
+    auto to_yiter = std::lower_bound(from_yiter, y + ylen, x[ix]);
+    if (to_yiter == y + ylen) continue;
+
+    auto iy_s = from_yiter - y;
+    auto iy_e = to_yiter - y;    
+    applyv(xdata[ix], ydata, iy_s,  iy_e, op);
+        
+    from_yiter = to_yiter;
+  }
+}
+
+
+// [[Rcpp::export(.ops)]]
+Rcpp::List ops(Rcpp::List& xdata,
+               Rcpp::List& ydata,
+               Rcpp::String& op_string)
+{
+  // handle all the data types, the translation of the op_string
+
+  std::function<double(double, double)> op;
+  if (op_string == "+") {
+    op = std::plus<double>();
+  } else if (op_string == "-") {
+    op = std::minus<double>();
+  } else if (op_string == "*") {
+    op = std::multiplies<double>();
+  } else if (op_string == "/") {
+    op = std::divides<double>();
+  } else {
+    Rcpp::stop(std::string("unsupported operator ") + std::string(op_string));    
+  }
+  
+  // if (xdata.size() != x.size()) throw std::out_of_range("'xdata' must have same size as 'x'");   
+
+
+  // TODO:
+  // check x has two columnss
+  Rcpp::NumericVector x = xdata[0];
+  auto x_dt = reinterpret_cast<const nanotime::dtime*>(&x[0]);
+  Rcpp::NumericVector y = ydata[0];
+  auto y_dt = reinterpret_cast<const nanotime::dtime*>(&y[0]);
+ 
+  Rcpp::List res = Rcpp::clone(ydata);
+
+  // iterate through the rest of y columns and apply the ops:
+  for (auto i=1; i<ydata.size(); ++i) {
+    Rcpp::NumericVector xdata_col = xdata[1];
+    Rcpp::NumericVector ydata_col = res[i]; // haven't found a way to get a reference from the list
+   
+    ops_helper(x_dt,
+               x.size(),
+               y_dt,
+               y.size(),
+               xdata_col,
+               ydata_col,
+               op);
+    res[i] = ydata_col;
+  }
+  
+  return res;
 }
 
 
