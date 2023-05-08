@@ -1,8 +1,8 @@
 Package: dtts
 Type: Package
 Title: 'data.table' Time-Series
-Version: 0.1.0.2
-Date: 2023-04-26
+Version: 0.1.0.3
+Date: 2023-05-08
 Author: Dirk Eddelbuettel and Leonardo Silvestri
 Maintainer: Dirk Eddelbuettel <edd@debian.org>
 Description: High-frequency time-series support via 'nanotime' and 'data.table'.
@@ -11,5 +11,5 @@ Imports: nanotime, data.table, methods, bit64, Rcpp (>= 0.11.5), RcppCCTZ (>= 0.
 Suggests: tinytest
 LinkingTo: Rcpp, RcppCCTZ, RcppDate, nanotime
 BugReports: https://github.com/eddelbuettel/dtts/issues
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.2
 Encoding: UTF-8

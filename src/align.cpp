@@ -463,13 +463,29 @@ void ops_helper(const nanotime::dtime* x,
 }
 
 
+
+static bool check_numeric(SEXP s) {
+  return TYPEOF(s) == REALSXP || TYPEOF(s) == INTSXP;
+}
+
+
+static R_xlen_t get_nb_numeric_columns(Rcpp::List& l) {
+  auto ncols_double = 0;
+  for (auto i=1; i<l.size(); ++i) {
+    if (check_numeric(l[i])) {
+      ++ncols_double;
+    }
+  }
+  return ncols_double;
+}
+
+
 // [[Rcpp::export(.ops)]]
 Rcpp::List ops(Rcpp::List& xdata,
                Rcpp::List& ydata,
                Rcpp::String& op_string)
 {
-  // handle all the data types, the translation of the op_string
-
+  // handle the translation of the op_string
   std::function<double(double, double)> op;
   if (op_string == "+") {
     op = std::plus<double>();
@@ -480,14 +496,26 @@ Rcpp::List ops(Rcpp::List& xdata,
   } else if (op_string == "/") {
     op = std::divides<double>();
   } else {
-    Rcpp::stop(std::string("unsupported operator ") + std::string(op_string));    
+    Rcpp::stop(std::string("unsupported operator '") + std::string(op_string) + "'");
   }
   
-  // if (xdata.size() != x.size()) throw std::out_of_range("'xdata' must have same size as 'x'");   
+  // only work with doubles; require that except for the index, all
+  // other columns of 'x' are numerics:
+  auto x_ncols_numeric = get_nb_numeric_columns(xdata);
+  if (x_ncols_numeric == 0) {
+    Rcpp::stop("'x' must have at least one numeric column");
+  } else if (x_ncols_numeric != xdata.size() - 1) {
+    Rcpp::stop("all data columns of 'x' must be numeric");
+  }
+  // if one column, easy, apply it on all columns of 'ydata', but if
+  // more than one, check we have the same number of numeric columns in
+  // 'ydata':
+  auto y_ncols_numeric = get_nb_numeric_columns(ydata);
+  if (x_ncols_numeric != 1 && x_ncols_numeric != y_ncols_numeric) {
+    Rcpp::stop("'x' must have one numeric column or the same number as 'y'");
+  }
+  
 
-
-  // TODO:
-  // check x has two columnss
   Rcpp::NumericVector x = xdata[0];
   auto x_dt = reinterpret_cast<const nanotime::dtime*>(&x[0]);
   Rcpp::NumericVector y = ydata[0];
@@ -496,10 +524,31 @@ Rcpp::List ops(Rcpp::List& xdata,
   Rcpp::List res = Rcpp::clone(ydata);
 
   // iterate through the rest of y columns and apply the ops:
-  for (auto i=1; i<ydata.size(); ++i) {
-    Rcpp::NumericVector xdata_col = xdata[1];
-    Rcpp::NumericVector ydata_col = res[i]; // haven't found a way to get a reference from the list
-   
+  auto ix = 0;
+  for (auto iy=1; iy<ydata.size(); ) {
+    Rcpp::NumericVector xdata_col;
+    if (xdata.size() == 2) {
+      xdata_col = xdata[1];
+    } else {
+      ++ix;
+      if (ix >= xdata.size()) {
+        break;
+      }
+      xdata_col = xdata[ix];
+    }
+
+    // move to next numeric column of 'ydata':
+    while (!check_numeric(ydata[iy]) && (iy < ydata.size())) {
+     ++iy;
+    }
+    // if we got to the last columns it means we are done (not
+    // reachable as we run out of x cols first, but in case that logic
+    // changes, keep this check):
+    if (iy == ydata.size()) {
+      break;  // # nocov
+    }
+
+    Rcpp::NumericVector ydata_col = res[iy]; 
     ops_helper(x_dt,
                x.size(),
                y_dt,
@@ -507,35 +556,13 @@ Rcpp::List ops(Rcpp::List& xdata,
                xdata_col,
                ydata_col,
                op);
-    res[i] = ydata_col;
+    // after cloning, strangely, it seems we get copies and not references to the
+    // elements of the list; so we reassign 'ydata_col' back to res so res is
+    // modified:
+    res[iy] = ydata_col;
+
+    ++iy;                       // increment for the next time round
   }
   
   return res;
 }
-
-
-// // template <typename T, typename F>
-// // void op_zts(const arr::Vector<nanotime::dtime>& x, 
-// //             const arr::Vector<nanotime::dtime>& y, 
-// //             const arr::Vector<T>& xdata, 
-// //             arr::Vector<T>& ydata) 
-// // {
-// //   size_t ix = 0;
-
-// //   if (xdata.size() != x.size()) throw std::out_of_range("'xdata' must have same size as 'x'");   
-
-// //   // for each point in x, we try to find a matching point or set of
-// //   // points in y:
-// //   auto from_yiter = y.begin();
-// //   for (ix=0; ix<x.size(); ix++) {
-// //     auto to_yiter = std::lower_bound(from_yiter, y.end(), x[ix]);
-// //     if (to_yiter == y.end()) continue;
-
-// //     auto iy_s = from_yiter-y.begin();
-// //     auto iy_e = to_yiter-y.begin();
-// //     F::f(xdata[ix], ydata.begin() + iy_s, ydata.begin() + iy_e);
-      
-// //     from_yiter = to_yiter;
-// //   }
-// // }
-

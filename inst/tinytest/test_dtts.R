@@ -644,6 +644,176 @@ y <- as.nanotime(4:2)
 expect_error(align.idx(x, y, start=-as.nanoperiod("00:00:01"), tz="UTC"), "'y' must be sorted in ascending order")
 
 
+## tests for 'ops' function:
+## ------------------------
+## 1 'x' col, 1 'y' col:
+t1 <- nanotime(1:2 * one_second_duration * 2)
+t2 <- nanotime(1:4 * one_second_duration)
+dt1 <- data.table(index=t1, data1 = 1:2)
+setkey(dt1, index)
+dt2 <- data.table(index=t2, data1 = 1)
+setkey(dt2, index)
+expected_dt = copy(dt2)
+expected_dt[, data1 := c(2, 3, 3, 1)]
+expect_equal(expected_dt, ops(dt1, dt2, "+"))
+## 1 'x' col, 1 'y' col, ops=='-':
+t1 <- nanotime(1:2 * one_second_duration * 2)
+t2 <- nanotime(1:4 * one_second_duration)
+dt1 <- data.table(index=t1, data1 = 1:2)
+setkey(dt1, index)
+dt2 <- data.table(index=t2, data1 = 1)
+setkey(dt2, index)
+expected_dt = copy(dt2)
+expected_dt[, data1 := c(0, 1, 1, 1)]
+expect_equal(expected_dt, ops(dt1, dt2, "-"))
+## 1 'x' col, 1 'y' col, ops=='*':
+t1 <- nanotime(1:2 * one_second_duration * 2)
+t2 <- nanotime(1:4 * one_second_duration)
+dt1 <- data.table(index=t1, data1 = 1:2)
+setkey(dt1, index)
+dt2 <- data.table(index=t2, data1 = 1)
+setkey(dt2, index)
+expected_dt = copy(dt2)
+expected_dt[, data1 := c(1, 2, 2, 1)]
+expect_equal(expected_dt, ops(dt1, dt2, "*"))
+## 1 'x' col, 1 'y' col, ops=='/':
+t1 <- nanotime(1:2 * one_second_duration * 2)
+t2 <- nanotime(1:4 * one_second_duration)
+dt1 <- data.table(index=t1, data1 = 1:2)
+setkey(dt1, index)
+dt2 <- data.table(index=t2, data1 = 1)
+setkey(dt2, index)
+expected_dt = copy(dt2)
+expected_dt[, data1 := c(1, 2, 2, 1)]
+expect_equal(expected_dt, ops(dt1, dt2, "/"))
+## 1 'x' col, 3 'y' cols:
+t1 <- nanotime(1:2 * one_second_duration * 2)
+t2 <- nanotime(1:4 * one_second_duration)
+dt1 <- data.table(index=t1, data1 = 1:2)
+setkey(dt1, index)
+dt2 <- data.table(index=t2, data1=1, data2=2, data3=3)
+setkey(dt2, index)
+ops(dt1, dt2, "+")
+expected_dt = copy(dt2)
+expected_dt[, data1 := c(2, 3, 3, 1)]
+expected_dt[, data2 := data1 + 1]
+expected_dt[, data3 := data2 + 1]
+expect_equal(expected_dt, ops(dt1, dt2, "+"))
+## 3 'x' col, 3 'y' cols:
+t1 <- nanotime(1:2 * one_second_duration * 2)
+t2 <- nanotime(1:4 * one_second_duration)
+dt1 <- data.table(index=t1, c1=1:2, c2=3:4, c3=5:6)
+setkey(dt1, index)
+dt2 <- data.table(index=t2, data1=1, data2=2, data3=3)
+setkey(dt2, index)
+expected_dt = copy(dt2)
+expected_dt[, data1 := c(2, 3, 3, 1)]
+expected_dt[, data2 := c(5, 6, 6, 2)]
+expected_dt[, data3 := c(8, 9, 9, 3)]
+expect_equal(expected_dt, ops(dt1, dt2, "+"))
+## no overlap -> no change
+t1 <- nanotime(1:2 * one_second_duration * 10)
+t2 <- nanotime(1:4 * one_second_duration)
+dt1 <- data.table(index=t1, data1 = 1:2)
+setkey(dt1, index)
+dt2 <- data.table(index=t2, data1 = 1)
+setkey(dt2, index)
+expect_equal(dt2, ops(dt1, dt2, "+"))
+## 3 'x' col, 3 'y' cols:, skip extra string cols in 'y':
+t1 <- nanotime(1:2 * one_second_duration * 2)
+t2 <- nanotime(1:4 * one_second_duration)
+dt1 <- data.table(index=t1, c1=1:2, c2=3:4, c3=5:6)
+setkey(dt1, index)
+dt2 <- data.table(index=t2, d1=1, c1="a", d2=2, c2="b", d3=3, c3="c")
+setkey(dt2, index)
+expected_dt = copy(dt2)
+expected_dt[, d1 := c(2, 3, 3, 1)]
+expected_dt[, d2 := c(5, 6, 6, 2)]
+expected_dt[, d3 := c(8, 9, 9, 3)]
+expect_equal(expected_dt, ops(dt1, dt2, "+"))
+## same, but mix of int and double:
+t1 <- nanotime(1:2 * one_second_duration * 2)
+t2 <- nanotime(1:4 * one_second_duration)
+dt1 <- data.table(index=t1, d1=1:2, d2=3:4, d3=5:6)
+setkey(dt1, index)
+dt2 <- data.table(index=t2, d1=as.integer(1), c1="a", d2=2, c2="b", d3=3, c3="c")
+setkey(dt2, index)
+expected_dt = copy(dt2)
+expected_dt[, d1 := c(2, 3, 3, 1)]
+expected_dt[, d2 := c(5, 6, 6, 2)]
+expected_dt[, d3 := c(8, 9, 9, 3)]
+expect_equal(expected_dt, ops(dt1, dt2, "+"))
+## error, non-numeric column in x:
+t1 <- nanotime(1:2 * one_second_duration * 2)
+t2 <- nanotime(1:4 * one_second_duration)
+dt1 <- data.table(index=t1, d1=1:2, c1="a", d2=3:4, d3=5:6)
+setkey(dt1, index)
+dt2 <- data.table(index=t2, d1=as.integer(1), c1="a", d2=2, c2="b", d3=3, c3="c")
+setkey(dt2, index)
+expect_error(ops(dt1, dt2, "+"), "all data columns of 'x' must be numeric")
+## error, 2 cols in 'x', 3 cols in 'y'
+t1 <- nanotime(1:2 * one_second_duration * 2)
+t2 <- nanotime(1:4 * one_second_duration)
+dt1 <- data.table(index=t1, c1=1:2, c2=3:4)
+setkey(dt1, index)
+dt2 <- data.table(index=t2, d1=1, c1="a", d2=2, c2="b", d3=3, c3="c")
+setkey(dt2, index)
+expect_error(ops(dt1, dt2, "+"), "'x' must have one numeric column or the same number as 'y'")
+## error, no numerical columns in x:
+t1 <- nanotime(1:2 * one_second_duration * 2)
+t2 <- nanotime(1:4 * one_second_duration)
+dt1 <- data.table(index=t1, c1="a", c2="b")
+setkey(dt1, index)
+dt2 <- data.table(index=t2, d1=1, c1="a", d2=2, c2="b", d3=3, c3="c")
+setkey(dt2, index)
+expect_error(ops(dt1, dt2, "+"), "'x' must have at least one numeric column")
+## error, 3 cols in 'x', 2 cols in 'y'
+t1 <- nanotime(1:2 * one_second_duration * 2)
+t2 <- nanotime(1:4 * one_second_duration)
+dt1 <- data.table(index=t1, c1=1:2, c2=3:4, c3=5:6)
+setkey(dt1, index)
+dt2 <- data.table(index=t2, d1=1, c1="a", d2=2, c2="b", c3="c")
+setkey(dt2, index)
+expect_error(ops(dt1, dt2, "+"), "'x' must have one numeric column or the same number as 'y'")
+## error key check dt1:
+t1 <- nanotime(1:2 * one_second_duration * 2)
+t2 <- nanotime(1:4 * one_second_duration)
+dt1 <- data.table(index=t1, c1=1:2, c2=3:4, c3=5:6)
+dt2 <- data.table(index=t2, d1=1, c1="a", d2=2, c2="b", d3=3, c3="c")
+setkey(dt2, index)
+expect_error(ops(dt1, dt2, "+"), "first column of 'x' must be the first key")
+## error key check dt2:
+t1 <- nanotime(1:2 * one_second_duration * 2)
+t2 <- nanotime(1:4 * one_second_duration)
+dt1 <- data.table(index=t1, c1=1:2, c2=3:4, c3=5:6)
+setkey(dt1, index)
+dt2 <- data.table(index=t2, d1=1, c1="a", d2=2, c2="b", d3=3, c3="c")
+expect_error(ops(dt1, dt2, "+"), "first column of 'y' must be the first key")
+## error key check first col of 'x' not nanotime:
+t1 <- 1:2
+t2 <- nanotime(1:4 * one_second_duration)
+dt1 <- data.table(index=t1, c1=1:2, c2=3:4, c3=5:6)
+setkey(dt1, index)
+dt2 <- data.table(index=t2, d1=1, c1="a", d2=2, c2="b", d3=3, c3="c")
+setkey(dt2, index)
+expect_error(ops(dt1, dt2, "+"), "first column of 'x' must be of type 'nanotime'")
+## error key check first col of 'y' not nanotime:
+t1 <- nanotime(1:2 * one_second_duration * 2)
+t2 <- 1:4
+dt1 <- data.table(index=t1, c1=1:2, c2=3:4, c3=5:6)
+setkey(dt1, index)
+dt2 <- data.table(index=t2, d1=1, c1="a", d2=2, c2="b", d3=3, c3="c")
+setkey(dt2, index)
+expect_error(ops(dt1, dt2, "+"), "first column of 'y' must be of type 'nanotime'")
+## check unknown 'op':
+t1 <- nanotime(1:2 * one_second_duration * 2)
+t2 <- nanotime(1:4 * one_second_duration)
+dt1 <- data.table(index=t1, c1=1:2, c2=3:4, c3=5:6)
+setkey(dt1, index)
+dt2 <- data.table(index=t2, data1=1, data2=2, data3=3)
+setkey(dt2, index)
+expect_error(ops(dt1, dt2, "sdf"), "unsupported operator 'sdf'")
+
 
 if (FALSE) {
     ## don't do this; must appear in vignette!

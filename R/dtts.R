@@ -224,12 +224,6 @@ align_duration <- function(x,                         # data.table time-series
 }
 
 
-ops  <- function(x, y, func_string)
-{
-   .ops(x, y, func_string)
-}
-
-
 ##' Align a \code{data.table} onto a \code{nanotime} vector
 ##'
 ##' \code{align} returns the subset of \code{data.table} \code{x} that
@@ -548,4 +542,72 @@ setMethod("frequency",
               else {
                   stop("argument 'by' must be either 'nanoduration' or 'nanotime'")
               }
+          })
+
+
+##' @rdname ops
+setGeneric("ops", function(x, y, op_string, ...) standardGeneric("ops"))
+
+
+##' Arithmetic operations on two \code{data.table} time-series
+##'
+##' \code{ops} returns the \code{y} time-series on which the \code{x}
+##' time-series values are applied using the specified operator
+##' \code{op}.
+##'
+##' @section Details:
+##'
+##' The n elements of the \code{x} time-series operand define a set of
+##' n-1 intervals, and the value associated with each interval is
+##' applied to all the observations in the \code{y} time-series
+##' operand that fall in the interval. Note that the interval is
+##' closed at the beginning and open at the end. The supported values
+##' for \code{op} are "*", "/", "+", "-".
+##'
+##' There has to be one numeric column in \code{x} and \code{y}; there
+##' has to be either a one to one correspondance between the number of
+##' numeric columns in \code{x} and \code{y}, or there must be only
+##' one numeric column in \code{x} that will be applied to all numeric
+##' columns in \code{y}. Non-numeric columns must not appear in
+##' \code{x}, whereas they will be skipped of they appear in \code{y}.
+##' 
+##' @param x the \code{data.table} time-series that determines the
+##'     left operand
+##' @param y the \code{data.table} time-series that determines the
+##'     right operand \code{nanoperiod}.
+##' @param op_string string defining the operation to apply; the
+##'     supported values for \code{op} are "*", "/", "+", "-".
+##'
+##' @rdname ops
+##' 
+##' @examples
+##' \dontrun{
+##' one_second_duration  <- as.nanoduration("00:00:01")
+##' t1 <- nanotime(1:3 * one_second_duration * 3)
+##' t2 <- nanotime(1:10 * one_second_duration)
+##' dt1 <- data.table(index=t1, data1 = 1:3)
+##' setkey(dt1, index)
+##' dt2 <- data.table(index=t2, data1 = 1:10)
+##' setkey(dt2, index)
+##' ops(dt1, dt2, "+")
+##' }
+setMethod("ops",
+          signature("data.table", "data.table", "character"),
+          function(x, y, op_string)
+          {
+              if (!inherits(x[[1]], "nanotime")) {
+                  stop("first column of 'x' must be of type 'nanotime'")
+              }
+              if (!inherits(y[[1]], "nanotime")) {
+                  stop("first column of 'y' must be of type 'nanotime'")
+              }
+              if (is.null(key(x)) || names(x)[1] != key(x)[1]) {
+                  stop("first column of 'x' must be the first key")
+              }
+              if (is.null(key(y)) || names(y)[1] != key(y)[1]) {
+                  stop("first column of 'y' must be the first key")
+              }
+              
+              
+              .ops(x, y, op_string)
           })
