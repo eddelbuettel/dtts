@@ -1,4 +1,4 @@
-useDynLib(dtts)
+useDynLib(dtts, .registration=TRUE)
 import("methods")
 import("Rcpp")
 import("RcppCCTZ")
