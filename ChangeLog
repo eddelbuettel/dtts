@@ -11,6 +11,7 @@
 	* man/align.idx.Rd: Ditto
 	* man/frequency-data.table-method.Rd: Ditto
 	* man/grid.align.Rd: Ditto
+	* README.md: Added example for 'ops'
 
 2023-04-26  Leonardo Silvestri  <lsilvestri@ztsdb.org>
 

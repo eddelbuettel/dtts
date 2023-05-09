@@ -257,6 +257,53 @@ Which produces:
 10: 1970-01-01T00:01:40+00:00 10
 ~~~
 
+#### ops
+
+`ops` performs arithmetic operations between two time-series and has
+the following signature, where `x` and `y` are time-series and `op` is
+a string denoting an arithmetic operator.
+
+~~~ R
+ops(x, y, op_string)
+~~~
+
+Each entry in the left time-series operand defines an interval from
+the previous entry, and the value associated with this interval will
+be applied to all the observations in the right time-series operand
+that fall in the interval. Note that the interval is closed at the
+beginning and open and the end. The available values for op are "*",
+"/", "+", "-".
+
+This function is particulary useful to apply a multiplier or to add a
+constant that changes over time; one example would be the adjustment
+of stock prices for splits.
+
+Here is a visualization of `ops`:
+
+<img src="./inst/images/ops.svg">
+
+
+Here is an example:
+
+~~~ R
+one_second_duration  <- as.nanoduration("00:00:01")
+t1 <- nanotime(1:2 * one_second_duration * 3)
+t2 <- nanotime(1:4 * one_second_duration)
+dt1 <- data.table(index=t1, data1 = 1:length(t1))
+setkey(dt1, index)
+dt2 <- data.table(index=t2, data1 = 1:length(t2))
+setkey(dt2, index)
+ops(dt1, dt2, "+")
+~~~
+
+Which produces:
+```
+                       index data1
+1: 1970-01-01T00:00:01+00:00     2
+2: 1970-01-01T00:00:02+00:00     3
+3: 1970-01-01T00:00:03+00:00     3
+4: 1970-01-01T00:00:04+00:00     4
+```
 
 ### Time-series subsetting
 

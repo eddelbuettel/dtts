@@ -546,7 +546,7 @@ setMethod("frequency",
 
 
 ##' @rdname ops
-setGeneric("ops", function(x, y, op_string, ...) standardGeneric("ops"))
+setGeneric("ops", function(x, y, op_string) standardGeneric("ops"))
 
 
 ##' Arithmetic operations on two \code{data.table} time-series
@@ -583,11 +583,11 @@ setGeneric("ops", function(x, y, op_string, ...) standardGeneric("ops"))
 ##' @examples
 ##' \dontrun{
 ##' one_second_duration  <- as.nanoduration("00:00:01")
-##' t1 <- nanotime(1:3 * one_second_duration * 3)
-##' t2 <- nanotime(1:10 * one_second_duration)
-##' dt1 <- data.table(index=t1, data1 = 1:3)
+##' t1 <- nanotime(1:2 * one_second_duration * 3)
+##' t2 <- nanotime(1:4 * one_second_duration)
+##' dt1 <- data.table(index=t1, data1 = 1:length(t1))
 ##' setkey(dt1, index)
-##' dt2 <- data.table(index=t2, data1 = 1:10)
+##' dt2 <- data.table(index=t2, data1 = 1:length(t2))
 ##' setkey(dt2, index)
 ##' ops(dt1, dt2, "+")
 ##' }

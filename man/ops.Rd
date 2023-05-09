@@ -5,7 +5,7 @@
 \alias{ops,data.table,data.table,character-method}
 \title{Arithmetic operations on two \code{data.table} time-series}
 \usage{
-ops(x, y, op_string, ...)
+ops(x, y, op_string)
 
 \S4method{ops}{data.table,data.table,character}(x, y, op_string)
 }
@@ -45,11 +45,11 @@ columns in \code{y}. Non-numeric columns must not appear in
 \examples{
 \dontrun{
 one_second_duration  <- as.nanoduration("00:00:01")
-t1 <- nanotime(1:3 * one_second_duration * 3)
-t2 <- nanotime(1:10 * one_second_duration)
-dt1 <- data.table(index=t1, data1 = 1:3)
+t1 <- nanotime(1:2 * one_second_duration * 3)
+t2 <- nanotime(1:4 * one_second_duration)
+dt1 <- data.table(index=t1, data1 = 1:length(t1))
 setkey(dt1, index)
-dt2 <- data.table(index=t2, data1 = 1:10)
+dt2 <- data.table(index=t2, data1 = 1:length(t2))
 setkey(dt2, index)
 ops(dt1, dt2, "+")
 }
