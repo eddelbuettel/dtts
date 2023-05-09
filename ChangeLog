@@ -1,3 +1,18 @@
+2023-05-08  Leonardo Silvestri  <lsilvestri@ztsdb.org>
+
+	* DESCRIPTION (Version, Date): Roll minor version and date
+
+	* NAMESPACE: Added function 'ops'
+	* R/dtts.R: Ditto
+	* inst/tinytest/test_dtts.R: Ditto
+	* man/ops.Rd: Ditto
+	* src/align.cpp: Ditto
+	* man/align.Rd: Trivial change on regeneration
+	* man/align.idx.Rd: Ditto
+	* man/frequency-data.table-method.Rd: Ditto
+	* man/grid.align.Rd: Ditto
+	* README.md: Added example for 'ops'
+
 2023-04-26  Leonardo Silvestri  <lsilvestri@ztsdb.org>
 
 	* DESCRIPTION (Version, Date): Roll minor version and date
