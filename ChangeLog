@@ -1,3 +1,13 @@
+2023-05-15 Leonardo Silvestri <lsilvestri@ztsdb.org>
+
+	* DESCRIPTION (Version, Date): Roll minor version and date
+
+	* R/dtts.R: non-dotted names, allow arbitrary index column
+	* man/align_idx.Rd: replaces align.idx.Rd
+	* man/grid_align.Rd: replace grid.align.Rd
+	* README.md: non-dotted names
+	* inst/tinytest/test_dtts.R: non-dotted names
+
 2023-05-08  Leonardo Silvestri  <lsilvestri@ztsdb.org>
 
 	* DESCRIPTION (Version, Date): Roll minor version and date
