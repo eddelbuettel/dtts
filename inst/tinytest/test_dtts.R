@@ -12,78 +12,78 @@ one_second_period    <- as.nanoperiod(one_second_duration)
 savedFormat <- options()$nanotimeFormat
 options(nanotimeFormat="%Y-%m-%d %H:%M:%S")
 
-## align.idx
+## align_idx
 ## ---------
-#test_align.idx_equal_duration <- function() {
+#test_align_idx_equal_duration <- function() {
 ## do the alignment with no interval, so require equality for alignment:
 t1 <- nanotime(1:100 * one_second_duration)
 t2 <- nanotime(1:10 * one_second_duration * 10)
-expect_equal(align.idx(t1, t2, sopen=FALSE, eopen=FALSE), 1:10 * 10)
+expect_equal(align_idx(t1, t2, sopen=FALSE, eopen=FALSE), 1:10 * 10)
 #}
 
-#test_align.idx_before_duration <- function() {
+#test_align_idx_before_duration <- function() {
 ## do the alignment with an interval before of 1 nanosecond
 t1 <- nanotime(1:100 * one_second_duration * 2 + one_second_duration)
 t2 <- nanotime(1:10 * one_second_duration * 10)
-expect_equal(align.idx(t1, t2, start=-one_second_duration), seq(4, 49, 5))
+expect_equal(align_idx(t1, t2, start=-one_second_duration), seq(4, 49, 5))
 #}
 
-#test_align.idx_after_duration <- function() {
+#test_align_idx_after_duration <- function() {
 ## do the alignment with an interval after of 1 nanosecond
 t1 <- nanotime(1:100 * one_second_duration * 2 + one_second_duration)
 t2 <- nanotime(1:10 * one_second_duration * 10)
-expect_equal(align.idx(t1, t2, end=one_second_duration, eopen=FALSE), seq(5, 50, 5))
+expect_equal(align_idx(t1, t2, end=one_second_duration, eopen=FALSE), seq(5, 50, 5))
 #}
-## test align.idx duration with non-equal times, with NA at the end:
+## test align_idx duration with non-equal times, with NA at the end:
 t1 <- nanotime(1:10 * one_second_duration * 2 + one_second_duration - 1)
 t2 <- nanotime(1:10 * one_second_duration * 10)
-expect_equal(align.idx(t1, t2, start=-2*one_second_duration, eopen=FALSE), c(4, 9, rep(NA, 8)))
+expect_equal(align_idx(t1, t2, start=-2*one_second_duration, eopen=FALSE), c(4, 9, rep(NA, 8)))
 
-## test align.idx duration with non-equal times, with NA at the end:
+## test align_idx duration with non-equal times, with NA at the end:
 t1 <- nanotime(1:10 * one_second_duration * 2 + one_second_duration - 1)
 t2 <- nanotime(1:10 * one_second_duration * 10)
-expect_equal(align.idx(t1, t2, start=-2*one_second_duration), c(4, 9, rep(NA, 8)))
+expect_equal(align_idx(t1, t2, start=-2*one_second_duration), c(4, 9, rep(NA, 8)))
 
-## test align.idx duration with non-equal times, with NA at the beginning:
+## test align_idx duration with non-equal times, with NA at the beginning:
 t1 <- nanotime(1:10 * one_second_duration * 2 + 10 * one_second_duration - 1)
 t2 <- nanotime(1:10 * one_second_duration * 10)
-expect_equal(align.idx(t1, t2, sopen=TRUE, start=-2*one_second_duration), c(NA, 5, 10, rep(NA, 7)))
+expect_equal(align_idx(t1, t2, sopen=TRUE, start=-2*one_second_duration), c(NA, 5, 10, rep(NA, 7)))
 
-#test_align.idx_before_period <- function() {
+#test_align_idx_before_period <- function() {
 ## do the alignment with an interval before of a 1 nanosecond period
 t1 <- nanotime(1:100 * one_second_duration * 2 + one_second_duration)
 t2 <- nanotime(1:10 * one_second_duration * 10)
-expect_equal(align.idx(t1, t2, start=-one_second_period, tz="America/New_York"), seq(4, 49, 5))
+expect_equal(align_idx(t1, t2, start=-one_second_period, tz="America/New_York"), seq(4, 49, 5))
 #}
 
-## test align.idx period with non-equal times, with NA at the end:
+## test align_idx period with non-equal times, with NA at the end:
 t1 <- nanotime(1:10 * one_second_duration * 2 + one_second_duration - 1)
 t2 <- nanotime(1:10 * one_second_duration * 10)
-expect_equal(align.idx(t1, t2, start=-as.nanoperiod("00:00:02"), eopen=FALSE, tz="America/New_York"), c(4, 9, rep(NA, 8)))
+expect_equal(align_idx(t1, t2, start=-as.nanoperiod("00:00:02"), eopen=FALSE, tz="America/New_York"), c(4, 9, rep(NA, 8)))
 
-## test align.idx period with non-equal times, with NA at the end:
+## test align_idx period with non-equal times, with NA at the end:
 t1 <- nanotime(1:10 * one_second_duration * 2 + one_second_duration - 1)
 t2 <- nanotime(1:10 * one_second_duration * 10)
-expect_equal(align.idx(t1, t2, start=-as.nanoperiod("00:00:02"), tz="America/New_York"), c(4, 9, rep(NA, 8)))
+expect_equal(align_idx(t1, t2, start=-as.nanoperiod("00:00:02"), tz="America/New_York"), c(4, 9, rep(NA, 8)))
 
-#test_align.idx_after_period <- function() {
+#test_align_idx_after_period <- function() {
 ## do the alignment with an interval after of a 1 nanosecond period
 t1 <- nanotime(1:100 * one_second_duration * 2 + one_second_duration)
 t2 <- nanotime(1:10 * one_second_duration * 10)
-expect_equal(align.idx(t1, t2, end=one_second_period, eopen=FALSE, tz="America/New_York"), seq(5, 50, 5))
+expect_equal(align_idx(t1, t2, end=one_second_period, eopen=FALSE, tz="America/New_York"), seq(5, 50, 5))
                                         #}
 ## all default arguments:
 t1 <- nanotime(1:30 * one_second_duration)
 t2 <- nanotime(1:3 * one_second_duration * 10)
-expect_equal(align.idx(t1, t2), c(10,20,30))
+expect_equal(align_idx(t1, t2), c(10,20,30))
 
 ## incorrect parameter types (nanoduration):
-expect_error(align.idx(t1, t2, sopen="open"), "must be a 'logical'")
-expect_error(align.idx(t1, t2, eopen="open"), "must be a 'logical'")
+expect_error(align_idx(t1, t2, sopen="open"), "must be a 'logical'")
+expect_error(align_idx(t1, t2, eopen="open"), "must be a 'logical'")
 ## incorrect parameter types (nanoperiod):
-expect_error(align.idx(t1, t2, end=one_second_period, sopen="open"), "must be a 'logical'")
-expect_error(align.idx(t1, t2, end=one_second_period, eopen="open"), "must be a 'logical'")
-expect_error(align.idx(t1, t2, end=one_second_period, tz=3), "'tz' must be a 'character'")
+expect_error(align_idx(t1, t2, end=one_second_period, sopen="open"), "must be a 'logical'")
+expect_error(align_idx(t1, t2, end=one_second_period, eopen="open"), "must be a 'logical'")
+expect_error(align_idx(t1, t2, end=one_second_period, tz=3), "'tz' must be a 'character'")
 
 
 ## align
@@ -92,8 +92,7 @@ expect_error(align.idx(t1, t2, end=one_second_period, tz=3), "'tz' must be a 'ch
 ## with all default params:
 rows <- 10
 t1 <- seq(as.nanotime(0), by=one_second_duration, length.out=rows)
-dt1 <- data.table(index=t1, v1=1:rows)
-setkey(dt1, index)
+dt1 <- data.table(idx=t1, v1=1:rows, key="idx")
 t2 <- seq(as.nanotime(0), by=2*one_second_duration, length.out=rows/2)
 expect_equal(align(dt1, t2), dt1[seq(1, rows, by=2)])
 
@@ -244,13 +243,11 @@ expect_equal(align(dt1, t2, end=as.nanoduration(1), func=square_col1), exp)
 cols <- 3
 rows <- 100
 t1 <- nanotime(1:rows * one_second_duration)
-dt1 <- data.table(index=t1, matrix(0:(rows*cols-1), rows, cols))
-setkey(dt1, index)
+dt1 <- data.table(an_index=t1, matrix(0:(rows*cols-1), rows, cols), key="an_index")
 t2 <- nanotime(1:9 * one_second_duration * 10)
-exp <- data.table(index=t2, V1=seq(9.5, 89.5, by=10))
+exp <- data.table(an_index=t2, V1=seq(9.5, 89.5, by=10), key="an_index")
 exp[, V2 := V1 + 100]
 exp[, V3 := V2 + 100]
-setkey(exp, index)
 ## useful for testing:
 ## newColMeans <- function(x) {
 ##     print("this is x")
@@ -392,7 +389,7 @@ setkey(exp, index)
 expect_equal(align(dt1, t2, start=-one_second_period, sopen=TRUE, eopen=FALSE, func=nrow, tz="America/New_York"), exp)
 
 
-## grid.align:
+## grid_align:
 ## ----------
 
 ## nanoduration
@@ -405,12 +402,12 @@ exp <- data.table(index=as.nanotime(c("2021-11-07T00:00:00-04:00", "2021-11-07T2
                                       "2021-11-08T23:00:00-05:00", "2021-11-09T23:00:00-05:00")),
                   V1=c(24, 48, 72, 73))
 setkey(exp, index)
-expect_equal(grid.align(dt1, by=as.nanoduration("24:00:00")), exp)
+expect_equal(grid_align(dt1, by=as.nanoduration("24:00:00")), exp)
 
 ## nanoduration error with dt
 dt1 <- data.table(index=1:10, V1=1:10)
 setkey(dt1, index)
-expect_error(grid.align(dt1, by=as.nanoduration("24:00:00")), "first column of 'data.table' must be of type 'nanotime'")
+expect_error(grid_align(dt1, by=as.nanoduration("24:00:00")), "first column of 'data.table' must be of type 'nanotime'")
 
 ## nanoperiod
 t1 <- seq(from=as.nanotime("2021-11-06T00:00:00 America/New_York"),
@@ -418,17 +415,17 @@ t1 <- seq(from=as.nanotime("2021-11-06T00:00:00 America/New_York"),
           by=as.nanoduration("01:00:00"))
 dt1 <- data.table(index=t1, V1=0:(length(t1)-1))
 setkey(dt1, index)
-# format(grid.align(dt1, by=as.nanoperiod("1d"), tz="America/New_York")$index, tz="America/New_York")
+# format(grid_align(dt1, by=as.nanoperiod("1d"), tz="America/New_York")$index, tz="America/New_York")
 exp <- data.table(index=as.nanotime(c("2021-11-07T00:00:00-04:00", "2021-11-08T00:00:00-05:00",
                                       "2021-11-09T00:00:00-05:00")),
                   V1=c(24, 49, 73))
 setkey(exp, index)
-expect_equal(grid.align(dt1, by=as.nanoperiod("1d"), tz="America/New_York"), exp)
+expect_equal(grid_align(dt1, by=as.nanoperiod("1d"), tz="America/New_York"), exp)
 
 ## nanoduration error with dt
 dt1 <- data.table(index=1:10, V1=1:10)
 setkey(dt1, index)
-expect_error(grid.align(dt1, by=as.nanoperiod("24:00:00")), "first column of 'data.table' must be of type 'nanotime'")
+expect_error(grid_align(dt1, by=as.nanoperiod("24:00:00")), "first column of 'data.table' must be of type 'nanotime'")
 
 ## this test to make the grid longer than t1:
 t1 <- seq(from=as.nanotime("2021-11-06T00:00:00 America/New_York"),
@@ -440,10 +437,10 @@ exp <- data.table(index=as.nanotime(c("2021-11-07T00:00:00-04:00", "2021-11-08T0
                                       "2021-11-09T00:00:00-05:00")),
                   V1=c(24, 49, 72))
 setkey(exp, index)
-expect_equal(grid.align(dt1, by=as.nanoperiod("1d"), tz="America/New_York"), exp)
+expect_equal(grid_align(dt1, by=as.nanoperiod("1d"), tz="America/New_York"), exp)
 
                                                                   
-## frequency (aka grid.align with func = 'nrow':
+## frequency (aka grid_align with func = 'nrow':
 ## ---------
 #test_frequency_duration <- function() {
 cols <- 3
@@ -492,42 +489,42 @@ expect_error(dtts:::frequency(dt1, by=3), "argument 'by' must be either 'nanodur
 ## tests for when there are duplicate times in the vector to align onto:
 ## --------------------------------------------------------------------
 
-## align.idx duplicates in t2:
+## align_idx duplicates in t2:
 t1 <- nanotime(1:100 * one_second_duration)
 time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
 t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
-expect_equal(align.idx(t1, t2, sopen=FALSE, eopen=FALSE), time_vec * 10)
+expect_equal(align_idx(t1, t2, sopen=FALSE, eopen=FALSE), time_vec * 10)
 
 ## check the same but with duplicate in t1:
 t1 <- nanotime(rep(1:10, each=2) * one_second_duration)
 t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration)
 # we don't expect the indices to be duplicates, because the indices represent a number for each element of t2:
-expect_equal(align.idx(t1, t2, sopen=FALSE, eopen=FALSE), c(1, 3, 5, 5, 7, 9, 11, 13, 15, 15))
+expect_equal(align_idx(t1, t2, sopen=FALSE, eopen=FALSE), c(1, 3, 5, 5, 7, 9, 11, 13, 15, 15))
 
 ## check the same but with duplicate on open start boundary with no interval:
 t1 <- nanotime(rep(1:10, each=2) * one_second_duration)
 t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration)
 # we don't expect the indices to be duplicates, because the indices represent a number for each element of t2:
-expect_equal(align.idx(t1, t2, sopen=TRUE, eopen=FALSE), rep(NA_real_, length(t2)))
+expect_equal(align_idx(t1, t2, sopen=TRUE, eopen=FALSE), rep(NA_real_, length(t2)))
 
 ## idx.align, duplicates in t2, with interval:
 t1 <- nanotime(1:100 * one_second_duration)
 time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
 t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
-expect_equal(align.idx(t1, t2, start=-one_second_duration, sopen=FALSE, eopen=FALSE), time_vec * 10)
+expect_equal(align_idx(t1, t2, start=-one_second_duration, sopen=FALSE, eopen=FALSE), time_vec * 10)
 
 ## idx.align, duplicates in t2, with interval, sopen=TRUE:
 t1 <- nanotime(1:100 * one_second_duration)
 time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
 t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
-expect_equal(align.idx(t1, t2, start=-one_second_duration, sopen=TRUE, eopen=FALSE), time_vec * 10)
+expect_equal(align_idx(t1, t2, start=-one_second_duration, sopen=TRUE, eopen=FALSE), time_vec * 10)
 
 ## idx.align, duplicates in t2, with interval, sopen=FALSE, eopen=TRUE:
 t1 <- nanotime(1:100 * one_second_duration)
 time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
 t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
 ## since we have eopen TRUE, we have to fetch one index before, hence the '-1':
-expect_equal(align.idx(t1, t2, start=-one_second_duration, sopen=FALSE, eopen=TRUE), time_vec * 10 - 1)
+expect_equal(align_idx(t1, t2, start=-one_second_duration, sopen=FALSE, eopen=TRUE), time_vec * 10 - 1)
 
 ## align, duplicates in t2
 t1 <- nanotime(1:100 * one_second_duration)
@@ -608,40 +605,40 @@ dt2[, V1 := c(rep(4, 6), rep(0, 4))]
 expect_equal(align(dt1, t2, start=-one_second_period, sopen=FALSE, eopen=FALSE, func=sum, tz="UTC"), dt2)
 
 
-## tests for unsorted calls to align.idx:
+## tests for unsorted calls to align_idx:
 ## -------------------------------------
 ## both unsorted:
 x <- as.nanotime(10:1)
 y <- as.nanotime(4:2)
-expect_error(align.idx(x, y), "'y' must be sorted in ascending order")
+expect_error(align_idx(x, y), "'y' must be sorted in ascending order")
 ## x only unsorted:
 x <- as.nanotime(10:1)
 y <- as.nanotime(2:4)
-expect_error(align.idx(x, y), "'x' must be sorted in ascending order")
+expect_error(align_idx(x, y), "'x' must be sorted in ascending order")
 ## y only unsorted:
 x <- as.nanotime(1:10)
 y <- as.nanotime(4:2)
-expect_error(align.idx(x, y), "'y' must be sorted in ascending order")
+expect_error(align_idx(x, y), "'y' must be sorted in ascending order")
 ## bypass x sorted:
 x <- as.nanotime(1:10)
 y <- as.nanotime(2:4)
-expect_equal(align.idx(x, y, bypass_x_check=TRUE), c(2:4))
+expect_equal(align_idx(x, y, bypass_x_check=TRUE), c(2:4))
 ## bypass x sorted, x descending:
 x <- as.nanotime(10:1)
 y <- as.nanotime(2:4)
-expect_equal(align.idx(x, y, bypass_x_check=TRUE), rep(NA_real_, 3))   # incorrect align as x is not sorted
+expect_equal(align_idx(x, y, bypass_x_check=TRUE), rep(NA_real_, 3))   # incorrect align as x is not sorted
 ## bypass y sorted, y descending:
 x <- as.nanotime(1:10)
 y <- as.nanotime(4:1)
-expect_equal(align.idx(x, y, bypass_y_check=TRUE), c(4, rep(NA_real_, 3)))   # incorrect align as x is not sorted
+expect_equal(align_idx(x, y, bypass_y_check=TRUE), c(4, rep(NA_real_, 3)))   # incorrect align as x is not sorted
 ## x only unsorted, period:
 x <- as.nanotime(10:1)
 y <- as.nanotime(2:4)
-expect_error(align.idx(x, y, start=-as.nanoperiod("00:00:01"), tz="UTC"), "'x' must be sorted in ascending order")
+expect_error(align_idx(x, y, start=-as.nanoperiod("00:00:01"), tz="UTC"), "'x' must be sorted in ascending order")
 ## y only unsorted, period:
 x <- as.nanotime(1:10)
 y <- as.nanotime(4:2)
-expect_error(align.idx(x, y, start=-as.nanoperiod("00:00:01"), tz="UTC"), "'y' must be sorted in ascending order")
+expect_error(align_idx(x, y, start=-as.nanoperiod("00:00:01"), tz="UTC"), "'y' must be sorted in ascending order")
 
 
 ## tests for 'ops' function:

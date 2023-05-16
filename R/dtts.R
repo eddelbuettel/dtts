@@ -1,5 +1,5 @@
 
-align_idx_duration <- function(x,                         # time-series
+align_idx_duration <- function(x,                         # nanotime vector
                                y,                         # nanotime vector
                                start,
                                end,
@@ -40,7 +40,7 @@ align_idx_duration <- function(x,                         # time-series
 
 ##' Get the index of the alignment of one vector onto another
 ##'
-##' \code{align.idx} returns the index of the alignment of \code{x} on \code{y}
+##' \code{align_idx} returns the index of the alignment of \code{x} on \code{y}
 ##'
 ##' In order to perform the alignment, intervals are created around
 ##' each elements in \code{y} using \code{start} and \code{end}. For
@@ -92,26 +92,26 @@ align_idx_duration <- function(x,                         # time-series
 ##'     is the past, or around the points in \code{y}, but if they are
 ##'     both positive, they can define intervals in the future.
 ##' 
-##' @rdname align.idx
+##' @rdname align_idx
 ##'
 ##' @examples
 ##' \dontrun{
-##' align.idx(nanotime(c(10:14, 17:19)), nanotime(11:20))
+##' align_idx(nanotime(c(10:14, 17:19)), nanotime(11:20))
 ##' ## [1]  2  3  4  5  NA NA  6  7  8  NA
 ##' }
-setGeneric("align.idx", function(x, y, start, end, ...) standardGeneric("align.idx"))
+setGeneric("align_idx", function(x, y, start, end, ...) standardGeneric("align_idx"))
 
-##' @rdname align.idx
-setMethod("align.idx", signature("nanotime", "nanotime", "nanoduration", "nanoduration"), align_idx_duration)
+##' @rdname align_idx
+setMethod("align_idx", signature("nanotime", "nanotime", "nanoduration", "nanoduration"), align_idx_duration)
 
-##' @rdname align.idx
-setMethod("align.idx", signature("nanotime", "nanotime", "missing", "missing"), align_idx_duration)
+##' @rdname align_idx
+setMethod("align_idx", signature("nanotime", "nanotime", "missing", "missing"), align_idx_duration)
 
-##' @rdname align.idx
-setMethod("align.idx", signature("nanotime", "nanotime", "missing", "nanoduration"), align_idx_duration)
+##' @rdname align_idx
+setMethod("align_idx", signature("nanotime", "nanotime", "missing", "nanoduration"), align_idx_duration)
 
-##' @rdname align.idx
-setMethod("align.idx", signature("nanotime", "nanotime", "nanoduration", "missing"), align_idx_duration)
+##' @rdname align_idx
+setMethod("align_idx", signature("nanotime", "nanotime", "nanoduration", "missing"), align_idx_duration)
 
 
 align_idx_period <- function(x,                         # time-series
@@ -150,14 +150,14 @@ align_idx_period <- function(x,                         # time-series
 }
 
 
-##' @rdname align.idx
-setMethod("align.idx", signature("nanotime", "nanotime", "nanoperiod", "nanoperiod"), align_idx_period)
+##' @rdname align_idx
+setMethod("align_idx", signature("nanotime", "nanotime", "nanoperiod", "nanoperiod"), align_idx_period)
 
-##' @rdname align.idx
-setMethod("align.idx", signature("nanotime", "nanotime", "missing", "nanoperiod"), align_idx_period)
+##' @rdname align_idx
+setMethod("align_idx", signature("nanotime", "nanotime", "missing", "nanoperiod"), align_idx_period)
 
-##' @rdname align.idx
-setMethod("align.idx", signature("nanotime", "nanotime", "nanoperiod", "missing"), align_idx_period)
+##' @rdname align_idx
+setMethod("align_idx", signature("nanotime", "nanotime", "nanoperiod", "missing"), align_idx_period)
 
 
 
@@ -211,6 +211,7 @@ align_duration <- function(x,                         # data.table time-series
                                                       sopen,
                                                       eopen,
                                                       func)))
+        names(res)[1] <- names(x)[1]    # keep the original name of the index
         setkeyv(res, key(x))
         res
     }
@@ -331,6 +332,7 @@ align_period <- function(x,                           # data.table time-series
                                                     eopen,
                                                     func,
                                                     tz)))
+        names(res)[1] <- names(x)[1]    # keep the original name of the index
         setkeyv(res, key(x))
         res
     }
@@ -353,8 +355,8 @@ setMethod("align", signature("data.table", "nanotime", "missing", "nanoperiod"),
 
 
 
-##' @rdname grid.align
-setGeneric("grid.align", function(x, by, ...) standardGeneric("grid.align"))
+##' @rdname grid_align
+setGeneric("grid_align", function(x, by, ...) standardGeneric("grid_align"))
 
 grid_align_duration <- function(x,                           # time-series
                                 by,                          # the grid size
@@ -417,7 +419,7 @@ grid_align_period <- function(x,                                   # time-series
 
 ##' Align a \code{data.table} onto a \code{nanotime} vector grid
 ##'
-##' \code{grid.align} returns the subset of \code{data.table} \code{x}
+##' \code{grid_align} returns the subset of \code{data.table} \code{x}
 ##' that aligns on the grid defined by \code{by}, \code{start} and
 ##' \code{end}
 ##'
@@ -455,7 +457,7 @@ grid_align_period <- function(x,                                   # time-series
 ##' @return a \code{data.table} time-series of the same length as
 ##'     \code{y} with the aggregations computed by \code{func}
 ##' 
-##' @rdname grid.align
+##' @rdname grid_align
 ##'
 ##' @examples
 ##' \dontrun{
@@ -463,11 +465,11 @@ grid_align_period <- function(x,                                   # time-series
 ##' x <- data.table(index=nanotime(cumsum(sin(seq(0.001, pi, 0.001)) * one_second)))
 ##' x <- x[, V2 := 1:nrow(x)]
 ##' setkey(x, index)
-##' grid.align(x, as.nanoduration("00:01:00"), sum)
+##' grid_align(x, as.nanoduration("00:01:00"), sum)
 ##' }
-setMethod("grid.align", signature("data.table", "nanoduration"), grid_align_duration)
-##' @rdname grid.align
-setMethod("grid.align", signature("data.table", "nanoperiod"),   grid_align_period)
+setMethod("grid_align", signature("data.table", "nanoduration"), grid_align_duration)
+##' @rdname grid_align
+setMethod("grid_align", signature("data.table", "nanoperiod"),   grid_align_period)
 
 
 ##' Return the number of observations per interval
@@ -528,7 +530,7 @@ setMethod("frequency",
                   if (missing(ival_end)) {
                       ival_end = as.nanoduration(0)
                   }
-                  grid.align(x, by, nrow, grid_start, grid_end, ival_start, ival_end, ival_sopen, ival_eopen)
+                  grid_align(x, by, nrow, grid_start, grid_end, ival_start, ival_end, ival_sopen, ival_eopen)
               }
               else if (inherits(by, "nanoperiod")) {
                   if (missing(grid_start)) {
@@ -537,7 +539,7 @@ setMethod("frequency",
                   if (missing(ival_end)) {
                       ival_end = nanoperiod(0)
                   }
-                  grid.align(x, by, nrow, grid_start, grid_end, ival_start, ival_end, ival_sopen, ival_eopen, tz)
+                  grid_align(x, by, nrow, grid_start, grid_end, ival_start, ival_end, ival_sopen, ival_eopen, tz)
               }
               else {
                   stop("argument 'by' must be either 'nanoduration' or 'nanotime'")

@@ -101,7 +101,7 @@ This figure shows an alignment using a statistic
 <img src="./inst/images/align_count.svg">
 
 
-#### `align.idx`
+#### `align_idx`
 
 This function takes two vectors of type `nanotime`. It aligns the
 first one onto the second one and returns the indices of the first
@@ -120,7 +120,7 @@ library(dtts)
 t1 <- seq(as.nanotime("1970-01-01T00:00:00+00:00"), by=as.nanoduration("00:00:01"), length.out=100)
 t2 <- seq(as.nanotime("1970-01-01T00:00:10+00:00"), by=as.nanoduration("00:00:10"), length.out=10)
 
-align.idx(t1, t2, start=as.nanoduration("-00:00:10"))
+align_idx(t1, t2, start=as.nanoduration("-00:00:10"))
 ~~~
 
 Which produces:
@@ -132,7 +132,7 @@ Which produces:
 #### `align`
 
 This function takes a `data.table` and aligns it onto `y`, a vector of
-`nanotime`. Like `align.idx`, it uses the arguments `start`, `end`,
+`nanotime`. Like `align_idx`, it uses the arguments `start`, `end`,
 `sopen` and `eopen` to define the intervals around the points in `y`. 
 
 Instead of the result being an index, it is a new `data.table`
@@ -179,7 +179,7 @@ Which produces:
 10: 1970-01-01T00:01:40+00:00 94.5
 ~~~
 
-#### `grid.align`
+#### `grid_align`
 
 This function adds one more dimension to the function `align`. Instead
 of taking a vector `y`, it constructs a grid that has as interval the
@@ -194,7 +194,7 @@ be anchored to a specific timezone.
 
 The following example is the same as for the `align` function, but
 shows that the vector `t2` does not need to be supplied as it is
-instead constructed by `grid.align`:
+instead constructed by `grid_align`:
 
 ~~~ R
 library(dtts)
@@ -203,7 +203,7 @@ t1 <- seq(as.nanotime("1970-01-01T00:00:00+00:00"), by=as.nanoduration("00:00:01
 dt1 <- data.table(index=t1, V1=0:99)
 setkey(dt1, index)
 
-grid.align(dt1, as.nanoduration("00:00:10"), func=colMeans)
+grid_align(dt1, as.nanoduration("00:00:10"), func=colMeans)
 ~~~
 
 Which produces:
@@ -224,7 +224,7 @@ Which produces:
 
 #### Frequency
 
-Using `grid.align` and `nrow` it is possible to get the frequency of a
+Using `grid_align` and `nrow` it is possible to get the frequency of a
 time-series, i.e. to count the number of elements in each interval of
 a grid.
 
@@ -238,7 +238,7 @@ t1 <- seq(as.nanotime("1970-01-01T00:00:00+00:00"), by=as.nanoduration("00:00:01
 dt1 <- data.table(index=t1, V1=0:99)
 setkey(dt1, index)
 
-grid.align(dt1, as.nanoduration("00:00:10"), func=nrow)
+grid_align(dt1, as.nanoduration("00:00:10"), func=nrow)
 ~~~
 
 Which produces:
