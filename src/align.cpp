@@ -201,7 +201,7 @@ Rcpp::List align_func_duration(const nanotime::dtime* x,
   auto res = Rcpp::List::create();
   auto cols = makeIndex(2, XLENGTH(xdata)+1);
   typedef SEXP SUBSET_DT_FUN(SEXP,SEXP,SEXP); 
-  SUBSET_DT_FUN *subsetDT = (SUBSET_DT_FUN *) R_GetCCallable("data.table", "CsubsetDT" );
+  SUBSET_DT_FUN *subsetDT = (SUBSET_DT_FUN *) R_GetCCallable("data.table", "DT_subsetDT" );
                      
   size_t ix = 0, iy = 0;
 
@@ -276,7 +276,7 @@ Rcpp::List align_func_period(const nanotime::dtime* x,
   auto res = Rcpp::List::create();
   auto cols = makeIndex(2, XLENGTH(xdata)+1);
   typedef SEXP SUBSET_DT_FUN(SEXP,SEXP,SEXP); 
-  SUBSET_DT_FUN *subsetDT = (SUBSET_DT_FUN *) R_GetCCallable("data.table", "CsubsetDT" );
+  SUBSET_DT_FUN *subsetDT = (SUBSET_DT_FUN *) R_GetCCallable("data.table", "DT_subsetDT" );
                      
   size_t ix = 0, iy = 0;
 
