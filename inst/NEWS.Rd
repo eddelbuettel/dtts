@@ -3,6 +3,14 @@
 \newcommand{\ghpr}{\href{https://github.com/eddelbuettel/dtts/pull/#1}{##1}}
 \newcommand{\ghit}{\href{https://github.com/eddelbuettel/dtts/issues/#1}{##1}}
 
+\section{Changes in version 0.1.2 (2024-01-31)}{
+  \itemize{
+    \item Update the one exported C-level identifier from \pkg{data.table}
+    following its 1.5.0 release and a renaming
+    \item Routine continuous integration updates
+  }
+}
+
 \section{Changes in version 0.1.1 (2023-08-08)}{
   \itemize{
     \item A simplifcation was applied to the C++ interface glue code
