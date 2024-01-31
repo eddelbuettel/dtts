@@ -4,6 +4,8 @@
 	exported data.table function to DT_subsetDT
 	* DESCRIPTION (Imports): Set to data.table (>= 1.5.0)
 
+	* .github/workflows/ci.yaml (jobs): Upate to r-ci setup action
+
 2023-09-20  Dirk Eddelbuettel  <edd@debian.org>
 
 	* .github/workflows/ci.yaml (jobs): Update to actions/checkout@v4
