@@ -1,3 +1,11 @@
+2024-02-02  Dirk Eddelbuettel  <edd@debian.org>
+
+	* DESCRIPTION (Version, Date): Roll minor version and date
+
+2024-02-02  Tomas Kalibera  <tomas.kalibera@gmail.com>
+
+	* src/align.cpp: Ensure localtime_s is used on Windows with LLVM
+
 2024-01-31  Dirk Eddelbuettel  <edd@debian.org>
 
 	* DESCRIPTION (Version, Date): Release 0.1.2
