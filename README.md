@@ -4,7 +4,7 @@
 [![License](https://eddelbuettel.github.io/badges/GPL2+.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 [![CRAN](https://www.r-pkg.org/badges/version/dtts)](https://cran.r-project.org/package=dtts)
 [![r-universe](https://eddelbuettel.r-universe.dev/badges/dtts)](https://eddelbuettel.r-universe.dev/dtts)
-[![Dependencies](https://tinyverse.netlify.com/badge/dtts)](https://cran.r-project.org/package=dtts)
+[![Dependencies](https://tinyverse.netlify.app/badge/dtts)](https://cran.r-project.org/package=dtts)
 [![Downloads](https://cranlogs.r-pkg.org/badges/dtts?color=brightgreen)](https://www.r-pkg.org/pkg/dtts)
 [![Code Coverage](https://codecov.io/gh/eddelbuettel/dtts/graph/badge.svg)](https://app.codecov.io/gh/eddelbuettel/dtts)
 [![Last Commit](https://img.shields.io/github/last-commit/eddelbuettel/dtts)](https://github.com/eddelbuettel/dtts)
