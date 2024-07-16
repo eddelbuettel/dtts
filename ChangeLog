@@ -1,5 +1,9 @@
+2024-07-16  Dirk Eddelbuettel  <edd@debian.org>
+
+	* DESCRIPTION (Version, Date): Roll minor version and date
+
 2024-07-16  Michael Chirico  <chiricom@google.com>
-    
+
 	* inst/tinytest/test_dtts.R: Correct tests with 1-second errors
           exposed by upstream improvements to all.equal.data.table()
 
