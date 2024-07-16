@@ -114,7 +114,10 @@ t1 <- nanotime(1:100 * one_second_duration * 2 + one_second_duration)
 dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
 setkey(dt1, index)
 t2 <- nanotime(1:10 * one_second_duration * 10)
-expect_equal(align(dt1, t2, start=-one_second_duration), dt1[seq(4, 49, 5)])
+expected <- dt1[seq(4, 49, 5)]
+expected[, index := index + one_second_duration]
+setkey(expected, index)
+expect_equal(align(dt1, t2, start=-one_second_duration), expected)
 #}
 
 #test_align_duration.after <- function() {
@@ -125,7 +128,10 @@ t1 <- nanotime(1:100 * one_second_duration * 2 + one_second_duration)
 dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
 setkey(dt1, index)
 t2 <- nanotime(1:10 * one_second_duration * 10)
-expect_equal(align(dt1, t2, start=as.nanoduration(0), end=one_second_duration, eopen=FALSE), dt1[seq(5, 50, 5)])
+expected <- dt1[seq(5, 50, 5)]
+expected[, index := index - one_second_duration]
+setkey(expected, index)
+expect_equal(align(dt1, t2, start=as.nanoduration(0), end=one_second_duration, eopen=FALSE), expected)
 #}
 
 #test_align_period.before <- function() {
@@ -136,7 +142,10 @@ t1 <- nanotime(1:100 * one_second_duration * 2 + one_second_duration)
 dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
 setkey(dt1, index)
 t2 <- nanotime(1:10 * one_second_duration * 10)
-expect_equal(align(dt1, t2, start=-one_second_period, tz="America/New_York"), dt1[seq(4, 49, 5)])
+expected <- dt1[seq(4, 49, 5)]
+expected[, index := index + one_second_duration]
+setkey(expected, index)
+expect_equal(align(dt1, t2, start=-one_second_period, tz="America/New_York"), expected)
 #}
 
 # test align period after; do the alignment with an interval after of 1 nanosecond
@@ -146,7 +155,10 @@ t1 <- nanotime(1:100 * one_second_duration * 2 + one_second_duration)
 dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
 setkey(dt1, index)
 t2 <- nanotime(1:10 * one_second_duration * 10)
-expect_equal(align(dt1, t2, end=one_second_period, eopen=FALSE, tz="America/New_York"), dt1[seq(5, 50, 5)])
+expected <- dt1[seq(5, 50, 5)]
+expected[, index := index - one_second_duration]
+setkey(expected, index)
+expect_equal(align(dt1, t2, end=one_second_period, eopen=FALSE, tz="America/New_York"), expected)
 
 
 ## for period alignment, check it more carefully on a timezone boundary:
