@@ -1,3 +1,8 @@
+2024-07-16  Michael Chirico  <chiricom@google.com>
+    
+	* inst/tinytest/test_dtts.R: Correct tests with 1-second errors
+          exposed by upstream improvements to all.equal.data.table()
+
 2024-05-19  Dirk Eddelbuettel  <edd@debian.org>
 
 	* README.md: Use tinyverse.netlify.app for dependency badge
