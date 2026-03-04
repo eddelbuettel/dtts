@@ -328,7 +328,7 @@ setkey(dt1, index)
 t2 <- seq(from=as.nanotime("2021-11-07T00:00:00 America/New_York"),
           to=as.nanotime("2021-11-09T00:00:00 America/New_York"),
           by=as.nanoperiod("1d"), tz="America/New_York")
-expected <- data.table(index=t2, V1=c(24, 25, 24))
+expected <- data.table(index=t2, c(24, 25, 24))
 setkey(expected, index)
 expect_equal(align(dt1, t2, start=-as.nanoperiod("1d"), tz="America/New_York", func=nrow), expected)
 #}
@@ -348,7 +348,7 @@ setkey(dt1, index)
 t2 <- seq(from=as.nanotime("2021-11-07T00:00:00 America/New_York"),
           to=as.nanotime("2021-11-09T00:00:00 America/New_York"),
           by=as.nanoperiod("1d"), tz="America/New_York")
-expected <- data.table(index=t2, V1=c(25, 24, 24))
+expected <- data.table(index=t2, c(25, 24, 24))
 setkey(expected, index)
 expect_equal(align(dt1, t2, end=as.nanoperiod("1d"), tz="America/New_York", func=nrow), expected)
 #}
@@ -374,7 +374,7 @@ t1 <- nanotime(1:rows * one_second_duration * 2 + one_second_duration)
 dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
 setkey(dt1, index)
 t2 <- nanotime(1:10 * one_second_duration * 10)
-exp <- data.table(index=t2, V1=c(rep(1, 8), rep(0, 2)))
+exp <- data.table(index=t2, c(rep(1, 8), rep(0, 2)))
 setkey(exp, index)
 expect_equal(align(dt1, t2, start=-one_second_period, eopen=FALSE, func=nrow, tz="America/New_York"), exp)
 
@@ -385,7 +385,7 @@ t1 <- nanotime(1:rows * one_second_duration * 2 + one_second_duration)
 dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
 setkey(dt1, index)
 t2 <- nanotime(1:10 * one_second_duration * 10)
-exp <- data.table(index=t2, V1=c(rep(1, 8), rep(0, 2)))
+exp <- data.table(index=t2, c(rep(1, 8), rep(0, 2)))
 setkey(exp, index)
 expect_equal(align(dt1, t2, start=-one_second_period, func=nrow, tz="America/New_York"), exp)
 
@@ -396,7 +396,7 @@ t1 <- nanotime(1:rows * one_second_duration * 2 + one_second_duration)
 dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
 setkey(dt1, index)
 t2 <- nanotime(1:10 * one_second_duration * 10)
-exp <- data.table(index=t2, V1=0)
+exp <- data.table(index=t2, 0)
 setkey(exp, index)
 expect_equal(align(dt1, t2, start=-one_second_period, sopen=TRUE, eopen=FALSE, func=nrow, tz="America/New_York"), exp)
 
@@ -461,8 +461,8 @@ t1 <- nanotime(1:rows * one_second_duration)
 dt1 <- data.table(index=t1, matrix(1:(rows*cols), rows, cols))
 setkey(dt1, index)
 res <- dtts:::frequency(dt1, by=as.nanoduration("00:00:30"))
-exp <- tail(data.table(index=seq(dt1$index[1], by=30*one_second_duration, length.out=4), V1=30), -1)
-exp <- rbind(exp, data.table(index=tail(exp$index,1)+30*one_second_duration, V1=10))
+exp <- tail(data.table(index=seq(dt1$index[1], by=30*one_second_duration, length.out=4), 30), -1)
+exp <- rbind(exp, data.table(index=tail(exp$index,1)+30*one_second_duration, 10))
 setkey(exp, index)
 expect_equal(res, exp)
 #}
@@ -474,7 +474,7 @@ t1 <- nanotime(0:(rows-1) * one_second_duration)
 dt1 <- data.table(index=t1, matrix(0:(rows*cols-1), rows, cols))
 setkey(dt1, index)
 res <- dtts:::frequency(dt1, by=as.nanoduration("00:00:30"), grid_start=nanotime(0), grid_end=nanotime(0) + 2*30*one_second_duration)
-exp <- data.table(index=seq(dt1$index[1], by=30*one_second_duration, length.out=3), V1=c(0, 30, 30))
+exp <- data.table(index=seq(dt1$index[1], by=30*one_second_duration, length.out=3), c(0, 30, 30))
 setkey(exp, index)
 expect_equal(res, exp)
 ## #}
@@ -489,8 +489,8 @@ res <- dtts:::frequency(dt1, by=as.nanoperiod("1d"), tz="America/New_York")
 
 t2 <- seq(nanotime("2021-02-02 00:00:00 America/New_York"), nanotime("2021-04-01 00:00:00 America/New_York"),
           by=as.nanoperiod("1d"), tz="America/New_York")
-exp <- data.table(index=t2, V1=24)
-exp[index=="2021-03-15T04:00:00+00:00", V1 := 23] # the dailight transition day
+exp <- data.table(index=t2, 24)
+exp[index=="2021-03-15T04:00:00+00:00", 2L := 23] # the dailight transition day
 setkey(exp, index)
 expect_equal(res, exp)
 #}
@@ -544,7 +544,7 @@ dt1 <- data.table(index=t1, 1)
 setkey(dt1, index)
 time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
 t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
-dt2 <- data.table(index=t2, V1=2)
+dt2 <- data.table(index=t2, 2)
 setkey(dt2, index)
 ## since we have eopen TRUE, we have to fetch one index before, hence the '-1':
 expect_equal(align(dt1, t2, start=-2*one_second_duration, func=sum), dt2)
@@ -555,7 +555,7 @@ dt1 <- data.table(index=t1, 1)
 setkey(dt1, index)
 time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
 t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
-dt2 <- data.table(index=t2, V1=c(rep(4, 6), rep(0, 4)))
+dt2 <- data.table(index=t2, c(rep(4, 6), rep(0, 4)))
 setkey(dt2, index)
 ## since we have eopen TRUE, we have to fetch one index before, hence the '-1':
 expect_equal(align(dt1, t2, start=-2*one_second_duration, func=sum), dt2)
@@ -566,7 +566,7 @@ dt1 <- data.table(index=t1, 1)
 setkey(dt1, index)
 time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
 t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
-dt2 <- data.table(index=t2, V1=c(rep(6, 6), rep(0, 4)))
+dt2 <- data.table(index=t2, c(rep(6, 6), rep(0, 4)))
 setkey(dt2, index)
 ## since we have eopen TRUE, we have to fetch one index before, hence the '-1':
 expect_equal(align(dt1, t2, start=-2*one_second_duration, sopen=FALSE, eopen=FALSE, func=sum), dt2)
@@ -577,13 +577,13 @@ dt1 <- data.table(index=t1, 1)
 setkey(dt1, index)
 time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
 t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
-dt2 <- data.table(index=t2, V1=0)
+dt2 <- data.table(index=t2, 0)
 setkey(dt2, index)
 expect_equal(align(dt1, t2, start=-one_second_duration, sopen=TRUE, eopen=TRUE, func=sum), dt2)
-dt2[, V1 := 1]
+dt2[, 2L := 1]
 expect_equal(align(dt1, t2, start=-one_second_duration, sopen=TRUE, eopen=FALSE, func=sum), dt2)
 expect_equal(align(dt1, t2, start=-one_second_duration, sopen=FALSE, eopen=TRUE, func=sum), dt2)
-dt2[, V1 := 2]
+dt2[, 2L := 2]
 expect_equal(align(dt1, t2, start=-one_second_duration, sopen=FALSE, eopen=FALSE, func=sum), dt2)
 
 ## align, duplicates in t1/t2:
@@ -592,13 +592,13 @@ dt1 <- data.table(index=t1, 1)
 setkey(dt1, index)
 time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
 t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
-dt2 <- data.table(index=t2, V1=c(rep(0, 6), rep(0, 4)))
+dt2 <- data.table(index=t2, c(rep(0, 6), rep(0, 4)))
 setkey(dt2, index)
 expect_equal(align(dt1, t2, start=-one_second_duration, sopen=TRUE, eopen=TRUE, func=sum), dt2)
-dt2[, V1 := c(rep(2, 6), rep(0, 4))]
+dt2[, 2L := c(rep(2, 6), rep(0, 4))]
 expect_equal(align(dt1, t2, start=-one_second_duration, sopen=TRUE, eopen=FALSE, func=sum), dt2)
 expect_equal(align(dt1, t2, start=-one_second_duration, sopen=FALSE, eopen=TRUE, func=sum), dt2)
-dt2[, V1 := c(rep(4, 6), rep(0, 4))]
+dt2[, 2L := c(rep(4, 6), rep(0, 4))]
 expect_equal(align(dt1, t2, start=-one_second_duration, sopen=FALSE, eopen=FALSE, func=sum), dt2)
 
 ## align, duplicates in t1/t2, period:
@@ -607,13 +607,13 @@ dt1 <- data.table(index=t1, 1)
 setkey(dt1, index)
 time_vec <- c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8)
 t2 <- nanotime(c(1, 2, 3, 3, 4, 5, 6, 7, 8, 8) * one_second_duration * 10)
-dt2 <- data.table(index=t2, V1=c(rep(0, 6), rep(0, 4)))
+dt2 <- data.table(index=t2, c(rep(0, 6), rep(0, 4)))
 setkey(dt2, index)
 expect_equal(align(dt1, t2, start=-one_second_period, sopen=TRUE, eopen=TRUE, func=sum, tz="UTC"), dt2)
-dt2[, V1 := c(rep(2, 6), rep(0, 4))]
+dt2[, 2L := c(rep(2, 6), rep(0, 4))]
 expect_equal(align(dt1, t2, start=-one_second_period, sopen=TRUE, eopen=FALSE, func=sum, tz="UTC"), dt2)
 expect_equal(align(dt1, t2, start=-one_second_period, sopen=FALSE, eopen=TRUE, func=sum, tz="UTC"), dt2)
-dt2[, V1 := c(rep(4, 6), rep(0, 4))]
+dt2[, 2L := c(rep(4, 6), rep(0, 4))]
 expect_equal(align(dt1, t2, start=-one_second_period, sopen=FALSE, eopen=FALSE, func=sum, tz="UTC"), dt2)
 
 
