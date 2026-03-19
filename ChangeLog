@@ -6,7 +6,7 @@
 2026-03-03  Michael Chirico  <chiricom@google.com>
 
 	* inst/tinytest/test_ddts.R: Adapt align() column name expectations
-	in tests for updated data.table
+	in tests for updated 'data.table'
 
 2025-12-12  Dirk Eddelbuettel  <edd@debian.org>
 

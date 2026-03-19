@@ -3,6 +3,15 @@
 \newcommand{\ghpr}{\href{https://github.com/eddelbuettel/dtts/pull/#1}{##1}}
 \newcommand{\ghit}{\href{https://github.com/eddelbuettel/dtts/issues/#1}{##1}}
 
+\section{Changes in version 0.1.3.1 [unreleased] (2026-03-18)}{
+  \itemize{
+    \item Adapt \code{align()} column names with changes in 'data.table'
+    (Michael Chirico in \ghpr{20})
+    \item Narrow imports to functions used for packages 'bit64', 'data.table'
+    and 'nanotime' (Michael Chirico in \ghpr{21})
+  }
+}
+
 \section{Changes in version 0.1.3 (2024-07-18)}{
   \itemize{
     \item Windows builds use \code{localtime_s} with LLVM (Tomas Kalibera in
