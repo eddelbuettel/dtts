@@ -1,3 +1,7 @@
+2026-03-16  Michael Chirico  <chiricom@google.com>
+
+	* NAMESPACE: Use minimal `importFrom()` directives, not total `import()`
+
 2026-03-03  Michael Chirico  <chiricom@google.com>
 
 	* inst/tinytest/test_ddts.R: Adapt align() column name expectations in tests for updated data.table
