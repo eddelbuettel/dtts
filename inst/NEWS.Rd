@@ -3,8 +3,9 @@
 \newcommand{\ghpr}{\href{https://github.com/eddelbuettel/dtts/pull/#1}{##1}}
 \newcommand{\ghit}{\href{https://github.com/eddelbuettel/dtts/issues/#1}{##1}}
 
-\section{Changes in version 0.1.3.1 [unreleased] (2026-03-18)}{
+\section{Changes in version 0.1.4 (2026-04-23)}{
   \itemize{
+    \item Continuous integration has received some routine updates
     \item Adapt \code{align()} column names with changes in 'data.table'
     (Michael Chirico in \ghpr{20})
     \item Narrow imports to functions used for packages 'bit64', 'data.table'
